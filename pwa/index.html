@@ -2,10 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f5a623">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CromoPro">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-<title>CromosPro 🏆</title>
+<title>CromoPro</title>
 <style>
 @media print {
   body{background:#fff!important;color:#000!important;font-family:Arial,sans-serif}
@@ -231,9 +236,9 @@ button,select,input{font-family:inherit;cursor:pointer}
         <button class="qr-scan-btn" id="btn-scan-qr" onclick="startQRScan()" style="margin-bottom:0">
           <span style="font-size:24px">📷</span><span style="font-size:12px">Usar cámara</span>
         </button>
-        <button class="qr-scan-btn" id="btn-upload-qr" onclick="document.getElementById('qr-file-input').click()" style="margin-bottom:0;border-color:var(--pu);background:rgba(139,92,246,.07);color:var(--pu)">
+        <label for="qr-file-input" class="qr-scan-btn" id="btn-upload-qr" style="margin-bottom:0;border-color:var(--pu);background:rgba(139,92,246,.07);color:var(--pu);cursor:pointer">
           <span style="font-size:24px">🖼️</span><span style="font-size:12px">Cargar imagen</span>
-        </button>
+        </label>
       </div>
       <input type="file" id="qr-file-input" accept="image/*" style="display:none" onchange="handleQRImage(event)">
       <div id="qr-video-wrap" style="display:none">
@@ -760,8 +765,8 @@ const SECTIONS=[
 const TOTAL=SECTIONS.reduce((a,s)=>a+s.stickers.length,0);
 let stk={},edits={},mode='a',msgMode='a',cur=0,curTab='album',editCode=null;
 
-function load(){try{const s=localStorage.getItem('p26_v6');if(s){const d=JSON.parse(s);stk=d.stk||{};edits=d.edits||{};}}catch(e){}}
-function save(){try{localStorage.setItem('p26_v6',JSON.stringify({stk,edits}));}catch(e){}}
+function load(){try{const s=localStorage.getItem('p26_v7');if(s){const d=JSON.parse(s);stk=d.stk||{};edits=d.edits||{};}}catch(e){}}
+function save(){try{localStorage.setItem('p26_v7',JSON.stringify({stk,edits}));}catch(e){}}
 function getName(s){return edits[s.c]||s.n;}
 function allS(){return SECTIONS.flatMap(s=>s.stickers);}
 
@@ -1188,9 +1193,7 @@ function handleQRImage(event){
       ctx.drawImage(img,0,0);
       const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
       if(window.jsQR){
-        // Try normal first, then inverted
-        let code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'dontInvert'});
-        if(!code)code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'onlyInvert'});
+        let code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'attemptBoth'});
         if(code&&code.data){
           parseQRPayload(code.data).then(res=>{
             if(!res){document.getElementById('qr-error').style.display='block';return;}
@@ -1204,7 +1207,6 @@ function handleQRImage(event){
     img.src=e.target.result;
   };
   reader.readAsDataURL(file);
-  // reset input so same file can be selected again
   event.target.value='';
 }
 
