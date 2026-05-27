@@ -1191,37 +1191,43 @@ function handleQRImage(event){
   reader.onload=function(e){
     const img=new Image();
     img.onload=function(){
-      // Force small canvas for QR reading - 600px max is plenty
-      const MAX=600;
-      let w=img.width,h=img.height;
-      const ratio=Math.min(MAX/w,MAX/h,1);
-      w=Math.round(w*ratio);h=Math.round(h*ratio);
-      const canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
-      const ctx=canvas.getContext('2d');
-      ctx.drawImage(img,0,0,w,h);
-      const imageData=ctx.getImageData(0,0,w,h);
-      // Run in next tick so UI can update
-      setTimeout(()=>{
-        try{
-          let code=null;
-          if(window.jsQR){
-            code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'attemptBoth'});
-          }
-          rescanQR();
-          if(code&&code.data){
-            parseQRPayload(code.data).then(res=>{
-              if(!res){document.getElementById('qr-error').style.display='block';return;}
-              processTradeResult(res.friendRep,res.friendMis);
-            });
-          } else {
-            document.getElementById('qr-error').style.display='block';
-          }
-        }catch(err){
+      // Try multiple sizes - sometimes a specific scale works better
+      const sizes=[400,600,800,img.width];
+      let attempt=0;
+      function trySize(){
+        if(attempt>=sizes.length){
           rescanQR();
           document.getElementById('qr-error').style.display='block';
+          return;
         }
-      },50);
+        const MAX=sizes[attempt++];
+        let w=img.width,h=img.height;
+        const ratio=Math.min(MAX/w,MAX/h,1);
+        w=Math.round(w*ratio);h=Math.round(h*ratio);
+        const canvas=document.createElement('canvas');
+        canvas.width=w;canvas.height=h;
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        const imageData=ctx.getImageData(0,0,w,h);
+        setTimeout(()=>{
+          try{
+            let code=null;
+            if(window.jsQR){
+              code=jsQR(imageData.data,w,h,{inversionAttempts:'attemptBoth'});
+            }
+            if(code&&code.data){
+              parseQRPayload(code.data).then(res=>{
+                rescanQR();
+                if(!res){document.getElementById('qr-error').style.display='block';return;}
+                processTradeResult(res.friendRep,res.friendMis);
+              });
+            } else {
+              trySize(); // try next scale
+            }
+          }catch(err){trySize();}
+        },30);
+      }
+      trySize();
     };
     img.onerror=function(){rescanQR();document.getElementById('qr-error').style.display='block';};
     img.src=e.target.result;
