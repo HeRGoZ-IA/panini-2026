@@ -173,7 +173,7 @@ button,select,input{font-family:inherit;cursor:pointer}
 </div>
 <div class="app">
   <div class="hdr">
-    <div class="hdr-top"><div class="logo">Panini <span>2026</span> 🏆</div><div class="badge" id="pct-b">0%</div></div>
+    <div class="hdr-top"><div class="logo">Cromos<span>PRO</span> 🏆</div><div class="badge" id="pct-b">0%</div></div>
     <div class="stats">
       <div class="stat"><div class="sn g" id="s-t">0</div><div class="sl">Tengo</div></div>
       <div class="stat"><div class="sn r" id="s-f">980</div><div class="sl">Faltan</div></div>
@@ -282,6 +282,7 @@ button,select,input{font-family:inherit;cursor:pointer}
       <div id="my-qr-wrap" style="text-align:center">
         <canvas id="my-qr-canvas" style="border-radius:12px;max-width:220px;width:100%"></canvas>
       </div>
+      <button id="qr-debug-toggle" onclick="toggleQRDebug()" style="width:100%;height:36px;margin-top:18px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--mu);font-size:11px;font-weight:600">🔧 Ver diagnóstico QR</button>
     </div>
   </div>
 
@@ -1192,11 +1193,21 @@ function hideQRStates(){
   ['qr-result','qr-nomatch','qr-error'].forEach(id=>document.getElementById(id).style.display='none');
 }
 
-function qrLog(msg){
+let qrDebugVisible=false;
+
+function toggleQRDebug(){
   const box=document.getElementById('qr-debug');
+  const btn=document.getElementById('qr-debug-toggle');
+  if(!box)return;
+  qrDebugVisible=!qrDebugVisible;
+  box.style.display=qrDebugVisible?'block':'none';
+  if(btn)btn.textContent=qrDebugVisible?'🔧 Ocultar diagnóstico QR':'🔧 Ver diagnóstico QR';
+}
+
+function qrLog(msg){
+  console.log('[QR]',msg);
   const log=document.getElementById('qr-debug-log');
-  if(!box||!log)return;
-  box.style.display='block';
+  if(!log)return;
   const time=new Date().toLocaleTimeString();
   log.textContent+='['+time+'] '+msg+'\n';
   log.scrollTop=log.scrollHeight;
