@@ -50,6 +50,12 @@
 .trade-chip{font-size:11px;padding:3px 8px;border-radius:6px;font-weight:600}
 .trade-chip.out{background:rgba(232,54,58,.15);color:var(--re)}
 .trade-chip.in{background:var(--gnb);color:var(--gn)}
+.trade-chip.removable,.qr-chip.removable{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.trade-x{border:none;background:rgba(255,255,255,.12);color:inherit;border-radius:999px;width:18px;height:18px;font-size:12px;font-weight:800;line-height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.qr-chip .trade-x{width:17px;height:17px;font-size:11px;flex-shrink:0}
+.backup-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.backup-btn{height:42px;border-radius:10px;border:1.5px solid var(--bd);background:var(--s1);color:var(--tx);font-size:12px;font-weight:600}
+.backup-note{font-size:10px;color:var(--mu);line-height:1.45;margin-top:8px}
 /* WHATSAPP NEW FORMAT */
 .wag2{background:var(--s2);border-radius:10px;padding:8px 10px;margin-bottom:8px}
 .wag2-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
@@ -264,7 +270,7 @@ button,select,input{font-family:inherit;cursor:pointer}
             <div id="qr-recv-list" class="qr-list"></div>
           </div>
         </div>
-        <button class="qr-confirm-btn" onclick="confirmTrade()">✅ Confirmar intercambio</button>
+        <button class="qr-confirm-btn" id="qr-confirm-btn" onclick="confirmTrade()">✅ Confirmar intercambio</button>
         <button class="qr-rescan-btn" onclick="rescanQR()">🔄 Escanear otro</button>
       </div>
       <div id="qr-nomatch" style="display:none" class="qr-nomatch">
@@ -283,6 +289,15 @@ button,select,input{font-family:inherit;cursor:pointer}
         <canvas id="my-qr-canvas" style="border-radius:12px;max-width:220px;width:100%"></canvas>
       </div>
       <button id="qr-debug-toggle" onclick="toggleQRDebug()" style="width:100%;height:36px;margin-top:18px;border-radius:10px;border:1px solid var(--bd);background:transparent;color:var(--mu);font-size:11px;font-weight:600">🔧 Ver diagnóstico QR</button>
+      <div class="sep" style="margin:18px 0 10px"></div>
+      <div class="slbl">Respaldo del álbum</div>
+      <div class="qr-sub">Guarda un archivo de respaldo para recuperar tu progreso si borras la caché o cambias de celular.</div>
+      <div class="backup-row">
+        <button class="backup-btn" onclick="exportBackup()">💾 Exportar respaldo</button>
+        <label class="backup-btn" for="backup-file-input" style="display:flex;align-items:center;justify-content:center">📂 Importar respaldo</label>
+      </div>
+      <input type="file" id="backup-file-input" accept="application/json,.json" style="display:none" onchange="importBackup(event)">
+      <div class="backup-note">El guardado automático usa el almacenamiento del navegador. Si se borra la caché/datos del sitio, solo podrás recuperar el álbum importando este respaldo.</div>
     </div>
   </div>
 
@@ -773,8 +788,19 @@ const SECTIONS=[
 const TOTAL=SECTIONS.reduce((a,s)=>a+s.stickers.length,0);
 let stk={},edits={},mode='a',msgMode='a',cur=0,curTab='album',editCode=null;
 
-function load(){try{const s=localStorage.getItem('p26_v7');if(s){const d=JSON.parse(s);stk=d.stk||{};edits=d.edits||{};}}catch(e){}}
-function save(){try{localStorage.setItem('p26_v7',JSON.stringify({stk,edits}));}catch(e){}}
+function load(){
+  try{
+    const s=localStorage.getItem('p26_v7');
+    if(s){const d=JSON.parse(s);stk=d.stk||{};edits=d.edits||{};}
+  }catch(e){}
+}
+function save(){
+  try{
+    const data={stk,edits,updatedAt:new Date().toISOString()};
+    localStorage.setItem('p26_v7',JSON.stringify(data));
+    localStorage.setItem('p26_v7_autobackup',JSON.stringify(data));
+  }catch(e){}
+}
 function getName(s){return edits[s.c]||s.n;}
 function allS(){return SECTIONS.flatMap(s=>s.stickers);}
 
@@ -1162,6 +1188,43 @@ async function parseQRPayload(text){
 
 let _tradeGive=[],_tradeRecv=[];
 
+function escHtml(v){return String(v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
+
+function renderTradeLists(){
+  const giveList=document.getElementById('qr-give-list');
+  const recvList=document.getElementById('qr-recv-list');
+  const confirmBtn=document.getElementById('qr-confirm-btn');
+  const diff=Math.abs(_tradeGive.length-_tradeRecv.length);
+  const giveTitle=document.querySelector('.qr-col-hdr.give');
+  const recvTitle=document.querySelector('.qr-col-hdr.recv');
+  if(giveTitle)giveTitle.textContent='📤 Tú le das ('+_tradeGive.length+')';
+  if(recvTitle)recvTitle.textContent='📥 Él te da ('+_tradeRecv.length+')';
+
+  giveList.innerHTML=_tradeGive.length?_tradeGive.map(c=>`<div class="qr-chip removable"><span>${escHtml(c)}</span><button class="trade-x" onclick="removeFromTrade('give','${escHtml(c)}')" aria-label="Quitar ${escHtml(c)}">×</button></div>`).join(''):'<div class="qr-chip" style="color:var(--mu)">—</div>';
+  recvList.innerHTML=_tradeRecv.length?_tradeRecv.map(c=>`<div class="qr-chip removable"><span>${escHtml(c)}</span><button class="trade-x" onclick="removeFromTrade('recv','${escHtml(c)}')" aria-label="Quitar ${escHtml(c)}">×</button></div>`).join(''):'<div class="qr-chip" style="color:var(--mu)">—</div>';
+
+  if(confirmBtn){
+    const empty=!_tradeGive.length&&!_tradeRecv.length;
+    confirmBtn.disabled=empty;
+    confirmBtn.style.opacity=empty?'.45':'1';
+    confirmBtn.textContent=empty?'Sin estampas seleccionadas':('✅ Confirmar intercambio'+(diff?' · Dif. '+diff:''));
+  }
+  if(document.getElementById('trade-modal').style.display==='flex')renderTradeModalLists();
+}
+
+function renderTradeModalLists(){
+  document.getElementById('trade-give-chips').innerHTML=
+    _tradeGive.length?_tradeGive.map(c=>`<span class="trade-chip out removable"><span>${escHtml(c)}</span><button class="trade-x" onclick="removeFromTrade('give','${escHtml(c)}')" aria-label="Quitar ${escHtml(c)}">×</button></span>`).join(''):'<span style="color:var(--mu);font-size:12px">Ninguna</span>';
+  document.getElementById('trade-recv-chips').innerHTML=
+    _tradeRecv.length?_tradeRecv.map(c=>`<span class="trade-chip in removable"><span>${escHtml(c)}</span><button class="trade-x" onclick="removeFromTrade('recv','${escHtml(c)}')" aria-label="Quitar ${escHtml(c)}">×</button></span>`).join(''):'<span style="color:var(--mu);font-size:12px">Ninguna</span>';
+}
+
+function removeFromTrade(side,code){
+  if(side==='give')_tradeGive=_tradeGive.filter(c=>c!==code);
+  if(side==='recv')_tradeRecv=_tradeRecv.filter(c=>c!==code);
+  renderTradeLists();
+}
+
 function processTradeResult(friendRep,friendMis){
   const myRep=ALL_CODES.filter(c=>(stk[c]||0)>1);
   const give=myRep.filter(c=>friendMis.includes(c));
@@ -1177,39 +1240,96 @@ function processTradeResult(friendRep,friendMis){
     return;
   }
   _tradeGive=give;_tradeRecv=recv;
-
-  const giveList=document.getElementById('qr-give-list');
-  const recvList=document.getElementById('qr-recv-list');
-  giveList.innerHTML=give.length?give.map(c=>`<div class="qr-chip">${c}</div>`).join(''):'<div class="qr-chip" style="color:var(--mu)">—</div>';
-  recvList.innerHTML=recv.length?recv.map(c=>`<div class="qr-chip">${c}</div>`).join(''):'<div class="qr-chip" style="color:var(--mu)">—</div>';
+  renderTradeLists();
   document.getElementById('qr-result').style.display='block';
 }
 
 function confirmTrade(){
-  document.getElementById('trade-give-chips').innerHTML=
-    _tradeGive.length?_tradeGive.map(c=>`<span class="trade-chip out">${c}</span>`).join(''):'<span style="color:var(--mu);font-size:12px">Ninguna</span>';
-  document.getElementById('trade-recv-chips').innerHTML=
-    _tradeRecv.length?_tradeRecv.map(c=>`<span class="trade-chip in">${c}</span>`).join(''):'<span style="color:var(--mu);font-size:12px">Ninguna</span>';
+  if(!_tradeGive.length&&!_tradeRecv.length)return;
+  renderTradeModalLists();
   const modal=document.getElementById('trade-modal');
   modal.style.display='flex';
 }
 
 function applyTrade(){
+  if(!_tradeGive.length&&!_tradeRecv.length)return;
   _tradeGive.forEach(c=>{if((stk[c]||0)>0){stk[c]--;if(!stk[c])delete stk[c];}});
   _tradeRecv.forEach(c=>{stk[c]=(stk[c]||0)+1;});
-  save();updateStats();
+  save();updateStats();renderSec();if(curTab==='wa')updateMsg();
   closeTrade();
   document.getElementById('qr-result').style.display='none';
   document.getElementById('btn-scan-qr').style.display='';
-  const fb=document.createElement('div');
-  fb.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--gn);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:300';
-  fb.textContent='✅ Álbum actualizado';
-  document.body.appendChild(fb);
-  setTimeout(()=>fb.remove(),2500);
+  showToast('✅ Álbum actualizado','var(--gn)');
   renderMyQR();
 }
 
 function closeTrade(){document.getElementById('trade-modal').style.display='none';}
+
+function showToast(text,bg){
+  const fb=document.createElement('div');
+  fb.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:'+(bg||'var(--s2)')+';color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.35)';
+  fb.textContent=text;
+  document.body.appendChild(fb);
+  setTimeout(()=>fb.remove(),2600);
+}
+
+function makeBackupData(){
+  return {
+    app:'CromoPro Panini Mundial 2026',
+    version:'p26_v7',
+    createdAt:new Date().toISOString(),
+    total:TOTAL,
+    stk,
+    edits
+  };
+}
+
+function exportBackup(){
+  try{
+    const data=makeBackupData();
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    const date=new Date().toISOString().slice(0,10);
+    a.href=URL.createObjectURL(blob);
+    a.download='respaldo_album_panini_2026_'+date+'.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+    showToast('💾 Respaldo descargado','var(--go)');
+  }catch(e){
+    showToast('⚠️ No se pudo exportar','var(--re)');
+  }
+}
+
+function importBackup(event){
+  const file=event&&event.target&&event.target.files?event.target.files[0]:null;
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!data||typeof data!=='object'||!data.stk)throw new Error('Formato inválido');
+      const cleanStk={};
+      Object.entries(data.stk||{}).forEach(([code,val])=>{
+        const n=parseInt(val,10);
+        if(ALL_CODES.includes(code)&&n>0)cleanStk[code]=n;
+      });
+      const cleanEdits={};
+      Object.entries(data.edits||{}).forEach(([code,val])=>{
+        if(ALL_CODES.includes(code)&&String(val).trim())cleanEdits[code]=String(val);
+      });
+      stk=cleanStk;edits=cleanEdits;
+      save();updateStats();renderSec();if(curTab==='wa')updateMsg();if(curTab==='qr')renderMyQR();
+      showToast('📂 Respaldo importado','var(--gn)');
+    }catch(e){
+      showToast('⚠️ Respaldo inválido','var(--re)');
+    }finally{
+      event.target.value='';
+    }
+  };
+  reader.readAsText(file);
+}
+
 
 function setQRError(title,sub){
   const box=document.getElementById('qr-error');
