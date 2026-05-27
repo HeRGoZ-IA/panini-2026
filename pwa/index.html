@@ -173,7 +173,7 @@ button,select,input{font-family:inherit;cursor:pointer}
 </div>
 <div class="app">
   <div class="hdr">
-    <div class="hdr-top"><div class="logo">Cromos<span>PRO</span> 🏆</div><div class="badge" id="pct-b">0%</div></div>
+    <div class="hdr-top"><div class="logo">Panini <span>2026</span> 🏆</div><div class="badge" id="pct-b">0%</div></div>
     <div class="stats">
       <div class="stat"><div class="sn g" id="s-t">0</div><div class="sl">Tengo</div></div>
       <div class="stat"><div class="sn r" id="s-f">980</div><div class="sl">Faltan</div></div>
@@ -708,7 +708,7 @@ const SECTIONS=[
   {c:'UZB-16',n:'Eldor Shomurodov'},{c:'UZB-17',n:'Oston Urunov'},{c:'UZB-18',n:'J. Masharipov'},
   {c:'UZB-19',n:'Igor Sergeev'},{c:'UZB-20',n:'Abbosbek Fayzullaev'}
  ]},
- {g:'Grupo K',code:'COL',label:'Colombia 🇨🇴',sub:'COL1–COL20',stickers:[
+ {g:'Grupo K',code:'COL',label:'Colombia',sub:'COL1–COL20',stickers:[
   {c:'COL-1',n:'Team Logo',f:1},{c:'COL-2',n:'Camilo Vargas'},{c:'COL-3',n:'David Ospina'},
   {c:'COL-4',n:'Dávinson Sánchez'},{c:'COL-5',n:'Yerry Mina'},{c:'COL-6',n:'Daniel Munoz'},
   {c:'COL-7',n:'Johan Mojica'},{c:'COL-8',n:'Jhon Lucumí'},{c:'COL-9',n:'Santiago Arias'},
@@ -778,6 +778,16 @@ function save(){try{localStorage.setItem('p26_v7',JSON.stringify({stk,edits}));}
 function getName(s){return edits[s.c]||s.n;}
 function allS(){return SECTIONS.flatMap(s=>s.stickers);}
 
+
+const FLAGS={
+  FWC:'🏆',MUS:'🥇',MEX:'🇲🇽',RSA:'🇿🇦',KOR:'🇰🇷',CZE:'🇨🇿',CAN:'🇨🇦',BIH:'🇧🇦',QAT:'🇶🇦',SUI:'🇨🇭',
+  BRA:'🇧🇷',MAR:'🇲🇦',HAI:'🇭🇹',SCO:'🏴',USA:'🇺🇸',PAR:'🇵🇾',AUS:'🇦🇺',TUR:'🇹🇷',
+  GER:'🇩🇪',CUW:'🇨🇼',CIV:'🇨🇮',ECU:'🇪🇨',NED:'🇳🇱',JPN:'🇯🇵',SWE:'🇸🇪',TUN:'🇹🇳',
+  BEL:'🇧🇪',EGY:'🇪🇬',IRN:'🇮🇷',NZL:'🇳🇿',ESP:'🇪🇸',CPV:'🇨🇻',KSA:'🇸🇦',URU:'🇺🇾',
+  FRA:'🇫🇷',SEN:'🇸🇳',IRQ:'🇮🇶',NOR:'🇳🇴',ARG:'🇦🇷',ALG:'🇩🇿',AUT:'🇦🇹',JOR:'🇯🇴',
+  POR:'🇵🇹',COD:'🇨🇩',UZB:'🇺🇿',COL:'🇨🇴',ENG:'🏴',CRO:'🇭🇷',GHA:'🇬🇭',PAN:'🇵🇦',CC:'🥤'
+};
+
 function updateStats(){
   const all=allS();let t=0,f=0,r=0;
   all.forEach(s=>{const q=stk[s.c]||0;if(!q)f++;else{t++;if(q>1)r++;}});
@@ -791,11 +801,12 @@ function updateStats(){
 
 function buildSelect(){
   const sel=document.getElementById('tsel');
+  sel.innerHTML='';
   SECTIONS.forEach((s,i)=>{
     const o=document.createElement('option');
     o.value=i;
-    // FORMAT: "Grupo A — MEX — México"
-    o.textContent=`${s.g} — ${s.code} — ${s.label}`;
+    const flag=FLAGS[s.code]||'🏳️';
+    o.textContent=`${flag} ${s.g} — ${s.code} — ${s.label}`;
     sel.appendChild(o);
   });
 }
@@ -1055,13 +1066,23 @@ function doPDF(tipo){
 }
 
 // ===================== QR FIGURITAS APP =====================
-// Bitmap format: Base64(Gzip(1000-bit bitmap)) - bit N = sticker index N in SECTIONS order
+// ALL_CODES conserva el orden visual de nuestra app.
+// QR_CODES usa el orden observado en FiguritasApp:
+// 00 → FWC-1..FWC-19 → equipos normales → CC-1..CC-14.
 const ALL_CODES=(()=>{const a=[];SECTIONS.forEach(s=>s.stickers.forEach(st=>a.push(st.c)));return a;})();
+const QR_CODES=(()=>{
+  const num=(c)=>parseInt((c.split('-')[1]||'0'),10);
+  const cover=ALL_CODES.includes('00')?['00']:[];
+  const fwc=ALL_CODES.filter(c=>c.startsWith('FWC-')).sort((a,b)=>num(a)-num(b));
+  const cc=ALL_CODES.filter(c=>c.startsWith('CC-')).sort((a,b)=>num(a)-num(b));
+  const normal=ALL_CODES.filter(c=>c!=='00'&&!c.startsWith('FWC-')&&!c.startsWith('CC-'));
+  return [...cover,...fwc,...normal,...cc];
+})();
 
 function buildBitmap(predicate){
   // 1000 bits = 125 bytes
   const buf=new Uint8Array(125);
-  ALL_CODES.forEach((code,i)=>{
+  QR_CODES.forEach((code,i)=>{
     if(i>=1000)return;
     if(predicate(code)){buf[Math.floor(i/8)]|=(1<<(7-(i%8)));}
   });
@@ -1117,8 +1138,9 @@ async function parseQRPayload(text){
     if(!repBuf||!misBuf){qrLog('❌ No se pudieron obtener los dos bitmaps.');return null;}
     qrLog('✅ Bitmap repetidas: '+repBuf.length+' bytes');
     qrLog('✅ Bitmap faltantes: '+misBuf.length+' bytes');
+    qrLog('ℹ️ Orden QR activo: 00 → FWC-1..FWC-19 → equipos → CC');
     const friendRep=[],friendMis=[];
-    ALL_CODES.forEach((code,i)=>{
+    QR_CODES.forEach((code,i)=>{
       if(i>=1000)return;
       const byte=Math.floor(i/8),bit=7-(i%8);
       if(repBuf[byte]&(1<<bit))friendRep.push(code);
