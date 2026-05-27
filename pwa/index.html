@@ -10,7 +10,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-<title>Panini Mundial 2026 🏆</title>
+<title>CromoPro 🏆</title>
 <style>
 @media print {
   body{background:#fff!important;color:#000!important;font-family:Arial,sans-serif}
@@ -1190,7 +1190,11 @@ function scanLoop(video){
   }
 }
 
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
+  }).then(()=>navigator.serviceWorker.register('sw.js?v=2'));
+}
 load();buildSelect();renderSec();updateStats();
 </script>
 </body>
