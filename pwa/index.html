@@ -900,14 +900,7 @@ function updateMsg(){
   const all=allS(),faltan=[],reps=[];
   all.forEach(s=>{const q=stk[s.c]||0;if(!q)faltan.push(s.c);else if(q>1)reps.push(s.c);});
   const tengo=TOTAL-faltan.length,pct=Math.round(tengo/TOTAL*100),bars=Math.round(pct/10);
-  let msg=`⚽ *CromoPro — Mundial 2026*\n📊 ${tengo}/${TOTAL} (${pct}%)\n${'▓'.repeat(bars)}${'░'.repeat(10-bars)} ${pct}%\n\n`;
-  if(msgMode==='a'||msgMode==='f'){msg+=`❌ *Me faltan (${faltan.length}):*\n`+(faltan.length?faltan.join(' · '):'¡Álbum completo! 🏆')+'\n\n';}
-  if(msgMode==='a'||msgMode==='r'){msg+=`🔁 *Para cambiar (${reps.length}):*\n`+(reps.length?reps.join(' · '):'Sin repetidas.')+'\n';}
-  msg+=`\n_¡Escribime si tenés las que me faltan! 🤝_`;
-  document.getElementById('mprev').textContent=msg;
 
-  // New visual grouped format
-  const wg=document.getElementById('wa-groups');wg.innerHTML='';
   const FLAGS={
     FWC:'🏆',MEX:'🇲🇽',RSA:'🇿🇦',KOR:'🇰🇷',CZE:'🇨🇿',CAN:'🇨🇦',BIH:'🇧🇦',QAT:'🇶🇦',SUI:'🇨🇭',
     BRA:'🇧🇷',MAR:'🇲🇦',HAI:'🇭🇹',SCO:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',USA:'🇺🇸',PAR:'🇵🇾',AUS:'🇦🇺',TUR:'🇹🇷',
@@ -923,7 +916,6 @@ function updateMsg(){
     const f=[],r=[];
     sec.stickers.forEach(s=>{
       const q=stk[s.c]||0;
-      // extract number from code e.g. "MEX-7" -> "7", "00" -> "00"
       const num=s.c.includes('-')?s.c.split('-')[1]:s.c;
       if(!q)f.push(num);
       else if(q>1)r.push(num);
@@ -931,16 +923,47 @@ function updateMsg(){
     if(f.length||r.length) bySection[sec.code]={label:sec.label,g:sec.g,f,r};
   });
 
-  // Group sections by grupo for display
+  const showF=(msgMode==='a'||msgMode==='f');
+  const showR=(msgMode==='a'||msgMode==='r');
+
+  // Build shareable text with flag format
+  let msg=`⚽ *CromoPro — Mundial 2026*\n📊 ${tengo}/${TOTAL} (${pct}%)\n${'▓'.repeat(bars)}${'░'.repeat(10-bars)} ${pct}%\n\n`;
+  if(showF){
+    const totalF=faltan.length;
+    msg+=`❌ *Me faltan (${totalF}):*\n`;
+    if(!totalF){msg+='¡Álbum completo! 🏆\n';}
+    else{
+      SECTIONS.forEach(sec=>{
+        const d=bySection[sec.code];
+        if(!d||!d.f.length)return;
+        msg+=`${FLAGS[sec.code]||'🏳️'} ${sec.code} · ${d.f.join(' · ')}\n`;
+      });
+    }
+    msg+='\n';
+  }
+  if(showR){
+    const totalR=reps.length;
+    msg+=`🔁 *Para cambiar (${totalR}):*\n`;
+    if(!totalR){msg+='Sin repetidas.\n';}
+    else{
+      SECTIONS.forEach(sec=>{
+        const d=bySection[sec.code];
+        if(!d||!d.r.length)return;
+        msg+=`${FLAGS[sec.code]||'🏳️'} ${sec.code} · ${d.r.join(' · ')}\n`;
+      });
+    }
+  }
+  msg+=`\n_¡Escribime si tenés las que me faltan! 🤝_`;
+  document.getElementById('mprev').textContent=msg;
+
+  // Visual grouped list
+  const wg=document.getElementById('wa-groups');wg.innerHTML='';
   const byGrupo={};
   SECTIONS.forEach(sec=>{
     if(!bySection[sec.code])return;
     if(!byGrupo[sec.g])byGrupo[sec.g]=[];
     byGrupo[sec.g].push({code:sec.code,...bySection[sec.code]});
   });
-
-  const showF=(msgMode==='a'||msgMode==='f');
-  const showR=(msgMode==='a'||msgMode==='r');
 
   Object.entries(byGrupo).forEach(([g,teams])=>{
     const hasData=teams.some(t=>(showF&&t.f.length)||(showR&&t.r.length));
