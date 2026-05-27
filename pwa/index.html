@@ -745,7 +745,7 @@ const SECTIONS=[
   {c:'PAN-16',n:'Ismael Díaz'},{c:'PAN-17',n:'Jose Fajardo'},{c:'PAN-18',n:'Cecilio Waterman'},
   {c:'PAN-19',n:'Jose Luiz Rodriguez'},{c:'PAN-20',n:'Alberto Quintero'}
  ]},
- {g:'FIFA Museum',code:'FWC',label:'FIFA Museum — Campeones',sub:'FWC9–FWC19 (FOIL)',stickers:[
+ {g:'FIFA Museum',code:'MUS',label:'FIFA Museum — Campeones',sub:'FWC9–FWC19 (FOIL)',stickers:[
   {c:'FWC-9',n:'Italia 1934',f:1},{c:'FWC-10',n:'Uruguay 1950',f:1},
   {c:'FWC-11',n:'Alem. Occ. 1954',f:1},{c:'FWC-12',n:'Brasil 1962',f:1},
   {c:'FWC-13',n:'Alem. Occ. 1974',f:1},{c:'FWC-14',n:'Argentina 1986',f:1},
@@ -907,7 +907,7 @@ function updateMsg(){
   const tengo=TOTAL-faltan.length,pct=Math.round(tengo/TOTAL*100),bars=Math.round(pct/10);
 
   const FLAGS={
-    FWC:'🏆',MEX:'🇲🇽',RSA:'🇿🇦',KOR:'🇰🇷',CZE:'🇨🇿',CAN:'🇨🇦',BIH:'🇧🇦',QAT:'🇶🇦',SUI:'🇨🇭',
+    FWC:'🏆',MUS:'🥇',MEX:'🇲🇽',RSA:'🇿🇦',KOR:'🇰🇷',CZE:'🇨🇿',CAN:'🇨🇦',BIH:'🇧🇦',QAT:'🇶🇦',SUI:'🇨🇭',
     BRA:'🇧🇷',MAR:'🇲🇦',HAI:'🇭🇹',SCO:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',USA:'🇺🇸',PAR:'🇵🇾',AUS:'🇦🇺',TUR:'🇹🇷',
     GER:'🇩🇪',CUW:'🇨🇼',CIV:'🇨🇮',ECU:'🇪🇨',NED:'🇳🇱',JPN:'🇯🇵',SWE:'🇸🇪',TUN:'🇹🇳',
     BEL:'🇧🇪',EGY:'🇪🇬',IRN:'🇮🇷',NZL:'🇳🇿',ESP:'🇪🇸',CPV:'🇨🇻',KSA:'🇸🇦',URU:'🇺🇾',
@@ -1125,7 +1125,7 @@ function processTradeResult(friendRep,friendMis){
   const recv=friendRep.filter(c=>myMis.includes(c));
 
   document.getElementById('qr-video-wrap').style.display='none';
-  document.getElementById('btn-scan-qr').style.display='none';
+  // Don't hide scan buttons here - rescanQR handles that
 
   if(!give.length&&!recv.length){
     document.getElementById('qr-nomatch').style.display='block';
@@ -1174,6 +1174,10 @@ function rescanQR(){
   document.getElementById('qr-result').style.display='none';
   document.getElementById('qr-nomatch').style.display='none';
   document.getElementById('qr-error').style.display='none';
+  document.getElementById('btn-scan-qr').style.opacity='1';
+  document.getElementById('btn-scan-qr').style.pointerEvents='';
+  document.getElementById('btn-upload-qr').style.opacity='1';
+  document.getElementById('btn-upload-qr').style.pointerEvents='';
   document.getElementById('btn-scan-qr').style.display='';
   document.getElementById('btn-upload-qr').style.display='';
 }
@@ -1181,29 +1185,36 @@ function rescanQR(){
 function handleQRImage(event){
   const file=event.target.files[0];
   if(!file)return;
-  document.getElementById('btn-scan-qr').style.display='none';
-  document.getElementById('btn-upload-qr').style.display='none';
+  // Show loading state instead of hiding
+  document.getElementById('btn-upload-qr').textContent='⏳ Procesando...';
   const reader=new FileReader();
   reader.onload=function(e){
     const img=new Image();
     img.onload=function(){
       const canvas=document.createElement('canvas');
-      canvas.width=img.width;canvas.height=img.height;
+      // Scale down if too large for better performance
+      const MAX=1200;
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){const ratio=Math.min(MAX/w,MAX/h);w=Math.round(w*ratio);h=Math.round(h*ratio);}
+      canvas.width=w;canvas.height=h;
       const ctx=canvas.getContext('2d');
-      ctx.drawImage(img,0,0);
-      const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+      ctx.drawImage(img,0,0,w,h);
+      const imageData=ctx.getImageData(0,0,w,h);
       if(window.jsQR){
         let code=jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'attemptBoth'});
         if(code&&code.data){
           parseQRPayload(code.data).then(res=>{
+            rescanQR();
             if(!res){document.getElementById('qr-error').style.display='block';return;}
             processTradeResult(res.friendRep,res.friendMis);
           });
         } else {
+          rescanQR();
           document.getElementById('qr-error').style.display='block';
         }
       }
     };
+    img.onerror=function(){rescanQR();document.getElementById('qr-error').style.display='block';};
     img.src=e.target.result;
   };
   reader.readAsDataURL(file);
