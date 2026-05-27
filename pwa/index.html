@@ -1067,24 +1067,20 @@ function doPDF(tipo){
 
 // ===================== QR FIGURITAS APP =====================
 // ALL_CODES conserva el orden visual de nuestra app.
-// QR_CODES usa el orden observado en FiguritasApp:
-// 00 → FWC-1..FWC-19 → equipos normales → CC-1..CC-14.
+// QR_CODES usa el mismo orden visual normal del álbum.
+// En esta versión de prueba NO se adelantan FWC-9..FWC-19 ni se envían las CC al final.
+// Además se prueba offset +1: el código 00 ocupa el bit/índice 1, no el 0.
 const ALL_CODES=(()=>{const a=[];SECTIONS.forEach(s=>s.stickers.forEach(st=>a.push(st.c)));return a;})();
-const QR_CODES=(()=>{
-  const num=(c)=>parseInt((c.split('-')[1]||'0'),10);
-  const cover=ALL_CODES.includes('00')?['00']:[];
-  const fwc=ALL_CODES.filter(c=>c.startsWith('FWC-')).sort((a,b)=>num(a)-num(b));
-  const cc=ALL_CODES.filter(c=>c.startsWith('CC-')).sort((a,b)=>num(a)-num(b));
-  const normal=ALL_CODES.filter(c=>c!=='00'&&!c.startsWith('FWC-')&&!c.startsWith('CC-'));
-  return [...cover,...fwc,...normal,...cc];
-})();
+const QR_INDEX_OFFSET=1;
+const QR_CODES=ALL_CODES.slice();
 
 function buildBitmap(predicate){
   // 1000 bits = 125 bytes
   const buf=new Uint8Array(125);
   QR_CODES.forEach((code,i)=>{
-    if(i>=1000)return;
-    if(predicate(code)){buf[Math.floor(i/8)]|=(1<<(7-(i%8)));}
+    const bitIndex=i+QR_INDEX_OFFSET;
+    if(bitIndex>=1000)return;
+    if(predicate(code)){buf[Math.floor(bitIndex/8)]|=(1<<(7-(bitIndex%8)));}
   });
   return buf;
 }
@@ -1138,11 +1134,12 @@ async function parseQRPayload(text){
     if(!repBuf||!misBuf){qrLog('❌ No se pudieron obtener los dos bitmaps.');return null;}
     qrLog('✅ Bitmap repetidas: '+repBuf.length+' bytes');
     qrLog('✅ Bitmap faltantes: '+misBuf.length+' bytes');
-    qrLog('ℹ️ Orden QR activo: 00 → FWC-1..FWC-19 → equipos → CC');
+    qrLog('ℹ️ Orden QR activo: orden visual normal del álbum + offset índice 1');
     const friendRep=[],friendMis=[];
     QR_CODES.forEach((code,i)=>{
-      if(i>=1000)return;
-      const byte=Math.floor(i/8),bit=7-(i%8);
+      const bitIndex=i+QR_INDEX_OFFSET;
+      if(bitIndex>=1000)return;
+      const byte=Math.floor(bitIndex/8),bit=7-(bitIndex%8);
       if(repBuf[byte]&(1<<bit))friendRep.push(code);
       if(misBuf[byte]&(1<<bit))friendMis.push(code);
     });
