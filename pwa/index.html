@@ -241,6 +241,13 @@ button,select,input{font-family:inherit;cursor:pointer}
         </label>
       </div>
       <input type="file" id="qr-file-input" accept="image/*" style="display:none" onchange="handleQRImage(event)">
+      <div id="qr-debug" style="display:none;background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+          <div style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;font-weight:700">Diagnóstico QR</div>
+          <button onclick="qrClearLog()" style="border:1px solid var(--bd);background:var(--s2);color:var(--mu);border-radius:7px;padding:4px 8px;font-size:10px">Limpiar</button>
+        </div>
+        <pre id="qr-debug-log" style="white-space:pre-wrap;word-break:break-word;font-size:10px;line-height:1.45;color:var(--tx);max-height:150px;overflow:auto;font-family:monospace"></pre>
+      </div>
       <div id="qr-video-wrap" style="display:none">
         <video id="qr-video" playsinline autoplay style="width:100%;border-radius:12px;max-height:260px;object-fit:cover"></video>
         <button class="qr-cancel" onclick="stopQRScan()">✕ Cancelar cámara</button>
@@ -265,8 +272,8 @@ button,select,input{font-family:inherit;cursor:pointer}
         <button class="qr-rescan-btn" onclick="rescanQR()" style="margin-top:12px">🔄 Intentar con otro</button>
       </div>
       <div id="qr-error" style="display:none" class="qr-nomatch">
-        ⚠️ No se pudo leer el QR.<br>
-        <span style="font-size:11px;color:var(--mu)">Intentá con una imagen más nítida o usá la cámara directamente.</span><br>
+        <div id="qr-error-title">⚠️ No se pudo leer el QR.</div>
+        <span id="qr-error-sub" style="font-size:11px;color:var(--mu)">Intentá con una imagen más nítida o usá la cámara directamente.</span><br>
         <button class="qr-rescan-btn" onclick="rescanQR()" style="margin-top:12px">🔄 Intentar de nuevo</button>
       </div>
       <div class="sep" style="margin:18px 0 10px"></div>
@@ -1078,54 +1085,62 @@ async function renderMyQR(){
   }
 }
 
-function decodeBitmap(b64gz){
+async function decodeBitmap(b64gz){
   try{
-    const bin=atob(b64gz);
+    if(!b64gz||typeof b64gz!=='string')return null;
+    if(typeof DecompressionStream==='undefined'){
+      qrLog('❌ DecompressionStream no está soportado por este navegador.');
+      return null;
+    }
+    const bin=atob(b64gz.trim());
     const bytes=new Uint8Array(bin.length);
     for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-    // Decompress gzip using DecompressionStream
-    return new Promise(res=>{
-      const ds=new DecompressionStream('gzip');
-      const writer=ds.writable.getWriter();
-      const reader=ds.readable.getReader();
-      writer.write(bytes);writer.close();
-      const chunks=[];
-      function read(){reader.read().then(({done,value})=>{if(done){const out=new Uint8Array(chunks.reduce((a,c)=>a+c.length,0));let off=0;chunks.forEach(c=>{out.set(c,off);off+=c.length;});res(out);}else{chunks.push(value);read();}});}
-      read();
-    });
-  }catch(e){return Promise.resolve(null);}
+    const ds=new DecompressionStream('gzip');
+    const stream=new Blob([bytes]).stream().pipeThrough(ds);
+    const out=await new Response(stream).arrayBuffer();
+    return new Uint8Array(out);
+  }catch(e){
+    qrLog('❌ Error descomprimiendo bloque gzip/base64: '+(e&&e.message?e.message:e));
+    return null;
+  }
 }
 
 async function parseQRPayload(text){
-  // Strip any non-base64/semicolon prefix bytes
-  const clean=text.replace(/^[^A-Za-z0-9+/=;]+/,'');
-  const parts=clean.split(';');
-  if(parts.length<2)return null;
-  const [repRaw,misRaw]=parts;
-  const [repBuf,misBuf]=await Promise.all([decodeBitmap(repRaw),decodeBitmap(misRaw)]);
-  if(!repBuf||!misBuf)return null;
-  const friendRep=[],friendMis=[];
-  ALL_CODES.forEach((code,i)=>{
-    if(i>=1000)return;
-    const byte=Math.floor(i/8),bit=7-(i%8);
-    if(repBuf[byte]&(1<<bit))friendRep.push(code);
-    if(misBuf[byte]&(1<<bit))friendMis.push(code);
-  });
-  return{friendRep,friendMis};
+  try{
+    if(!text||typeof text!=='string')return null;
+    const clean=text.replace(/^[^A-Za-z0-9+/=;]+/,'').trim();
+    const parts=clean.split(';').filter(Boolean);
+    if(parts.length<2){qrLog('❌ El payload no tiene dos bloques separados por ;');return null;}
+    const [repRaw,misRaw]=parts;
+    const [repBuf,misBuf]=await Promise.all([decodeBitmap(repRaw),decodeBitmap(misRaw)]);
+    if(!repBuf||!misBuf){qrLog('❌ No se pudieron obtener los dos bitmaps.');return null;}
+    qrLog('✅ Bitmap repetidas: '+repBuf.length+' bytes');
+    qrLog('✅ Bitmap faltantes: '+misBuf.length+' bytes');
+    const friendRep=[],friendMis=[];
+    ALL_CODES.forEach((code,i)=>{
+      if(i>=1000)return;
+      const byte=Math.floor(i/8),bit=7-(i%8);
+      if(repBuf[byte]&(1<<bit))friendRep.push(code);
+      if(misBuf[byte]&(1<<bit))friendMis.push(code);
+    });
+    return{friendRep,friendMis};
+  }catch(e){
+    qrLog('❌ Error interpretando payload Figuritas: '+(e&&e.message?e.message:e));
+    return null;
+  }
 }
 
 let _tradeGive=[],_tradeRecv=[];
 
 function processTradeResult(friendRep,friendMis){
-  // What I can give: my repeated stickers that friend is missing
   const myRep=ALL_CODES.filter(c=>(stk[c]||0)>1);
   const give=myRep.filter(c=>friendMis.includes(c));
-  // What I can receive: friend's repeated that I'm missing
   const myMis=ALL_CODES.filter(c=>!(stk[c]||0));
   const recv=friendRep.filter(c=>myMis.includes(c));
 
   document.getElementById('qr-video-wrap').style.display='none';
-  // Don't hide scan buttons here - rescanQR handles that
+  document.getElementById('btn-scan-qr').style.display='';
+  document.getElementById('btn-upload-qr').style.display='';
 
   if(!give.length&&!recv.length){
     document.getElementById('qr-nomatch').style.display='block';
@@ -1141,7 +1156,6 @@ function processTradeResult(friendRep,friendMis){
 }
 
 function confirmTrade(){
-  // Show modal summary
   document.getElementById('trade-give-chips').innerHTML=
     _tradeGive.length?_tradeGive.map(c=>`<span class="trade-chip out">${c}</span>`).join(''):'<span style="color:var(--mu);font-size:12px">Ninguna</span>';
   document.getElementById('trade-recv-chips').innerHTML=
@@ -1151,15 +1165,12 @@ function confirmTrade(){
 }
 
 function applyTrade(){
-  // Decrease my repeated for give stickers
   _tradeGive.forEach(c=>{if((stk[c]||0)>0){stk[c]--;if(!stk[c])delete stk[c];}});
-  // Add received stickers to my collection
   _tradeRecv.forEach(c=>{stk[c]=(stk[c]||0)+1;});
   save();updateStats();
   closeTrade();
   document.getElementById('qr-result').style.display='none';
   document.getElementById('btn-scan-qr').style.display='';
-  // Feedback
   const fb=document.createElement('div');
   fb.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--gn);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:300';
   fb.textContent='✅ Álbum actualizado';
@@ -1170,90 +1181,276 @@ function applyTrade(){
 
 function closeTrade(){document.getElementById('trade-modal').style.display='none';}
 
-function rescanQR(){
-  document.getElementById('qr-result').style.display='none';
-  document.getElementById('qr-nomatch').style.display='none';
-  document.getElementById('qr-error').style.display='none';
-  document.getElementById('btn-scan-qr').style.opacity='1';
-  document.getElementById('btn-scan-qr').style.pointerEvents='';
-  document.getElementById('btn-upload-qr').style.opacity='1';
-  document.getElementById('btn-upload-qr').style.pointerEvents='';
-  document.getElementById('btn-scan-qr').style.display='';
-  document.getElementById('btn-upload-qr').style.display='';
+function setQRError(title,sub){
+  const box=document.getElementById('qr-error');
+  document.getElementById('qr-error-title').textContent=title||'⚠️ No se pudo leer el QR.';
+  document.getElementById('qr-error-sub').textContent=sub||'Intentá con una imagen más nítida o usá la cámara directamente.';
+  box.style.display='block';
 }
 
-let _qrStream=null;
+function hideQRStates(){
+  ['qr-result','qr-nomatch','qr-error'].forEach(id=>document.getElementById(id).style.display='none');
+}
+
+function qrLog(msg){
+  const box=document.getElementById('qr-debug');
+  const log=document.getElementById('qr-debug-log');
+  if(!box||!log)return;
+  box.style.display='block';
+  const time=new Date().toLocaleTimeString();
+  log.textContent+='['+time+'] '+msg+'\n';
+  log.scrollTop=log.scrollHeight;
+}
+
+function qrClearLog(){
+  const log=document.getElementById('qr-debug-log');
+  if(log)log.textContent='';
+}
+
+function rescanQR(){
+  hideQRStates();
+  stopQRScan();
+  const btn=document.getElementById('btn-scan-qr');
+  const lbl=document.getElementById('btn-upload-qr');
+  btn.style.opacity='1';btn.style.pointerEvents='';btn.style.display='';
+  lbl.style.opacity='1';lbl.style.pointerEvents='';lbl.style.display='';
+  lbl.innerHTML='<span style="font-size:24px">🖼️</span><span style="font-size:12px">Cargar imagen</span>';
+}
+
 let _zxingReader=null;
+let _nativeDetector=null;
+let _nativeStream=null;
+let _nativeRAF=null;
+let _qrDetected=false;
 
 function getZXing(){
   if(!_zxingReader&&window.ZXing){
-    _zxingReader=new ZXing.BrowserMultiFormatReader();
+    try{
+      _zxingReader=ZXing.BrowserQRCodeReader?new ZXing.BrowserQRCodeReader():new ZXing.BrowserMultiFormatReader();
+    }catch(e){
+      qrLog('❌ No se pudo crear lector ZXing: '+(e&&e.message?e.message:e));
+      _zxingReader=null;
+    }
   }
   return _zxingReader;
 }
 
-function startQRScan(){
-  document.getElementById('btn-scan-qr').style.display='none';
-  document.getElementById('btn-upload-qr').style.display='none';
-  document.getElementById('qr-video-wrap').style.display='block';
-  const video=document.getElementById('qr-video');
-  const zx=getZXing();
-  if(!zx){
-    document.getElementById('qr-video-wrap').style.display='none';
-    document.getElementById('btn-scan-qr').style.display='';
-    document.getElementById('btn-upload-qr').style.display='';
-    document.getElementById('qr-error').style.display='block';
+function getNativeDetector(){
+  if(_nativeDetector)return _nativeDetector;
+  if(!('BarcodeDetector' in window))return null;
+  try{
+    _nativeDetector=new BarcodeDetector({formats:['qr_code']});
+    return _nativeDetector;
+  }catch(e){
+    qrLog('⚠️ BarcodeDetector no disponible: '+(e&&e.message?e.message:e));
+    return null;
+  }
+}
+
+async function handleQRText(rawText,source){
+  hideQRStates();
+  if(!rawText){setQRError('⚠️ QR leído vacío.','El lector detectó algo, pero no entregó texto.');return;}
+  const clean=String(rawText).replace(/^[^A-Za-z0-9+/=;]+/,'').trim();
+  qrLog('✅ QR detectado desde: '+source);
+  qrLog('Longitud cruda: '+String(rawText).length+' caracteres');
+  qrLog('Primeros caracteres: '+String(rawText).slice(0,300));
+  if(clean!==rawText)qrLog('ℹ️ Se eliminó prefijo no base64. Longitud limpia: '+clean.length);
+  if(!clean.includes(';')){
+    setQRError('✅ QR leído, pero no es de Figuritas.','Texto leído: '+String(rawText).slice(0,120));
     return;
   }
-  zx.decodeFromConstraints(
-    {video:{facingMode:'environment'}},
-    video,
-    (result,err)=>{
-      if(result){
-        stopQRScan();
-        parseQRPayload(result.getText()).then(res=>{
-          if(!res){document.getElementById('qr-error').style.display='block';return;}
-          processTradeResult(res.friendRep,res.friendMis);
-        });
-      }
-    }
-  ).catch(()=>{
-    document.getElementById('qr-video-wrap').style.display='none';
-    document.getElementById('btn-scan-qr').style.display='';
-    document.getElementById('btn-upload-qr').style.display='';
-    document.getElementById('qr-error').style.display='block';
-  });
+  qrLog('✅ Tiene separador ; — intentando interpretar como Figuritas...');
+  const res=await parseQRPayload(clean);
+  if(!res){
+    setQRError('⚠️ QR leído, pero no se pudo interpretar.','Tiene formato parecido a Figuritas, pero falló la descompresión o el bitmap.');
+    return;
+  }
+  qrLog('✅ QR Figuritas interpretado. Repetidas amigo: '+res.friendRep.length+' | Faltantes amigo: '+res.friendMis.length);
+  processTradeResult(res.friendRep,res.friendMis);
 }
 
 function stopQRScan(){
+  if(_nativeRAF){cancelAnimationFrame(_nativeRAF);_nativeRAF=null;}
+  if(_nativeStream){_nativeStream.getTracks().forEach(t=>t.stop());_nativeStream=null;}
   const zx=getZXing();
   if(zx)try{zx.reset();}catch(e){}
+  const video=document.getElementById('qr-video');
+  if(video){try{video.pause();video.srcObject=null;}catch(e){}}
   document.getElementById('qr-video-wrap').style.display='none';
   document.getElementById('btn-scan-qr').style.display='';
   document.getElementById('btn-upload-qr').style.display='';
 }
 
-function handleQRImage(event){
+async function startQRScan(){
+  hideQRStates();
+  _qrDetected=false;
+  document.getElementById('btn-scan-qr').style.display='none';
+  document.getElementById('btn-upload-qr').style.display='none';
+  document.getElementById('qr-video-wrap').style.display='block';
+  const video=document.getElementById('qr-video');
+  qrLog('📷 Iniciando cámara...');
+
+  const detector=getNativeDetector();
+  if(detector&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+    try{
+      _nativeStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      video.srcObject=_nativeStream;
+      await video.play();
+      qrLog('✅ Cámara iniciada con lector nativo Android/Chrome.');
+      const scan=async()=>{
+        if(_qrDetected||!_nativeStream)return;
+        try{
+          if(video.readyState>=2){
+            const codes=await detector.detect(video);
+            if(codes&&codes.length){
+              _qrDetected=true;
+              const raw=codes[0].rawValue||codes[0].rawData||'';
+              stopQRScan();
+              await handleQRText(raw,'cámara nativa');
+              return;
+            }
+          }
+        }catch(e){}
+        _nativeRAF=requestAnimationFrame(scan);
+      };
+      scan();
+      return;
+    }catch(e){
+      qrLog('⚠️ Falló lector nativo de cámara: '+(e&&e.message?e.message:e));
+      stopQRScan();
+      document.getElementById('qr-video-wrap').style.display='block';
+      document.getElementById('btn-scan-qr').style.display='none';
+      document.getElementById('btn-upload-qr').style.display='none';
+    }
+  }
+
+  const zx=getZXing();
+  if(!zx){
+    stopQRScan();
+    setQRError('⚠️ Lector QR no cargó.','No está disponible BarcodeDetector ni ZXing. Revisa internet/CDN o abre la app en Chrome.');
+    return;
+  }
+  qrLog('📷 Usando fallback ZXing para cámara...');
+  try{
+    zx.decodeFromConstraints(
+      {video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}},
+      video,
+      async(result,err)=>{
+        if(result&&!_qrDetected){
+          _qrDetected=true;
+          stopQRScan();
+          await handleQRText(result.getText(),'cámara ZXing');
+        }
+      }
+    ).catch(e=>{
+      stopQRScan();
+      qrLog('❌ Error iniciando cámara ZXing: '+(e&&e.message?e.message:e));
+      setQRError('⚠️ No se pudo iniciar el lector QR.','Prueba desde Chrome y verifica permisos de cámara.');
+    });
+  }catch(e){
+    stopQRScan();
+    qrLog('❌ Error de cámara: '+(e&&e.message?e.message:e));
+    setQRError('⚠️ No se pudo iniciar la cámara.','Verifica permisos y que la página esté en HTTPS o localhost.');
+  }
+}
+
+function loadImageFromUrl(url){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=()=>reject(new Error('No se pudo cargar la imagen'));
+    img.src=url;
+  });
+}
+
+function makeCanvasVariants(img){
+  const variants=[];
+  const sizes=[1,1.5,2,3];
+  sizes.forEach(scale=>{
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+    canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    variants.push({label:'canvas x'+scale,el:canvas});
+
+    const bw=document.createElement('canvas');
+    bw.width=canvas.width;bw.height=canvas.height;
+    const bctx=bw.getContext('2d',{willReadFrequently:true});
+    bctx.drawImage(canvas,0,0);
+    const data=bctx.getImageData(0,0,bw.width,bw.height);
+    for(let i=0;i<data.data.length;i+=4){
+      const v=(data.data[i]+data.data[i+1]+data.data[i+2])/3;
+      const c=v>150?255:0;
+      data.data[i]=data.data[i+1]=data.data[i+2]=c;
+    }
+    bctx.putImageData(data,0,0);
+    variants.push({label:'byn x'+scale,el:bw});
+  });
+  return variants;
+}
+
+async function decodeImageWithNative(img){
+  const detector=getNativeDetector();
+  if(!detector)return null;
+  try{
+    qrLog('🖼️ Probando BarcodeDetector en imagen original...');
+    let codes=await detector.detect(img);
+    if(codes&&codes.length)return codes[0].rawValue||codes[0].rawData||'';
+    for(const v of makeCanvasVariants(img)){
+      qrLog('🖼️ Probando BarcodeDetector '+v.label+'...');
+      codes=await detector.detect(v.el);
+      if(codes&&codes.length)return codes[0].rawValue||codes[0].rawData||'';
+    }
+  }catch(e){
+    qrLog('⚠️ BarcodeDetector imagen falló: '+(e&&e.message?e.message:e));
+  }
+  return null;
+}
+
+async function decodeImageWithZXing(url,img){
+  const zx=getZXing();
+  if(!zx)return null;
+  try{
+    qrLog('🖼️ Probando ZXing con URL de imagen...');
+    const r=await zx.decodeFromImageUrl(url);
+    if(r)return r.getText();
+  }catch(e){qrLog('⚠️ ZXing URL no detectó QR: '+(e&&e.message?e.message:e));}
+  try{
+    qrLog('🖼️ Probando ZXing con elemento imagen...');
+    const r=await zx.decodeFromImageElement(img);
+    if(r)return r.getText();
+  }catch(e){qrLog('⚠️ ZXing imagen no detectó QR: '+(e&&e.message?e.message:e));}
+  return null;
+}
+
+async function handleQRImage(event){
   const file=event.target.files[0];
   if(!file)return;
+  hideQRStates();
   const lbl=document.getElementById('btn-upload-qr');
   lbl.innerHTML='<span style="font-size:20px">⏳</span><span style="font-size:12px">Leyendo...</span>';
+  qrLog('🖼️ Imagen seleccionada: '+file.name+' | '+Math.round(file.size/1024)+' KB');
   const url=URL.createObjectURL(file);
-  const zx=getZXing();
-  if(!zx){rescanQR();document.getElementById('qr-error').style.display='block';return;}
-  zx.decodeFromImageUrl(url).then(result=>{
+  try{
+    const img=await loadImageFromUrl(url);
+    qrLog('🖼️ Resolución imagen: '+img.naturalWidth+'x'+img.naturalHeight);
+    let raw=await decodeImageWithNative(img);
+    if(!raw)raw=await decodeImageWithZXing(url,img);
+    if(raw){
+      await handleQRText(raw,'imagen cargada');
+    }else{
+      setQRError('⚠️ No se pudo detectar ningún QR.','La imagen cargó, pero ni el lector nativo ni ZXing encontraron un código QR.');
+    }
+  }catch(e){
+    qrLog('❌ Error procesando imagen: '+(e&&e.message?e.message:e));
+    setQRError('⚠️ No se pudo procesar la imagen.','Prueba con una captura más nítida, sin recortes y con margen blanco alrededor del QR.');
+  }finally{
     URL.revokeObjectURL(url);
-    rescanQR();
-    parseQRPayload(result.getText()).then(res=>{
-      if(!res){document.getElementById('qr-error').style.display='block';return;}
-      processTradeResult(res.friendRep,res.friendMis);
-    });
-  }).catch(()=>{
-    URL.revokeObjectURL(url);
-    rescanQR();
-    document.getElementById('qr-error').style.display='block';
-  });
-  event.target.value='';
+    lbl.innerHTML='<span style="font-size:24px">🖼️</span><span style="font-size:12px">Cargar imagen</span>';
+    event.target.value='';
+  }
 }
 
 
