@@ -98,10 +98,37 @@ button,select,input{font-family:inherit;cursor:pointer}
 .body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .pad{padding:12px}
 /* CONTROLS */
-.ctrls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.ctrls{display:grid;grid-template-columns:52px 1fr 1fr;gap:8px;margin-bottom:12px}
 .ctrl{height:46px;border-radius:10px;border:1.5px solid var(--bd);background:var(--s1);color:var(--mu);font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px}
 .ctrl.on-a{border-color:var(--gn);color:var(--gn);background:var(--gnb)}
 .ctrl.on-d{border-color:var(--re);color:var(--re);background:rgba(232,54,58,.1)}
+
+.ctrl.search{font-size:20px;padding:0;color:var(--go);border-color:var(--go);background:rgba(245,166,35,.07)}
+.search-modal{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:16px;width:calc(100% - 28px);max-width:430px;max-height:84vh;overflow:hidden;display:flex;flex-direction:column}
+.search-modal h3{font-size:15px;font-weight:700;color:var(--go);margin-bottom:4px}
+.search-modal p{font-size:11px;color:var(--mu);line-height:1.4;margin-bottom:10px}
+.search-box{display:flex;gap:8px;margin-bottom:10px}
+.search-box input{flex:1;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:10px;padding:11px 12px;font-size:15px;text-transform:uppercase}
+.search-box input:focus{outline:none;border-color:var(--go)}
+.search-close{width:42px;border-radius:10px;border:1px solid var(--bd);background:var(--s2);color:var(--tx);font-size:18px;font-weight:700}
+.search-results{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+.search-empty{font-size:12px;color:var(--mu);text-align:center;padding:20px 4px;line-height:1.5}
+.search-card{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:10px}
+.search-card.top{border-color:var(--go)}
+.search-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:4px}
+.search-code{font-size:15px;font-weight:800;color:var(--go)}
+.search-team{font-size:11px;color:var(--mu);line-height:1.35}
+.search-status{font-size:11px;font-weight:700;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.search-status.miss{color:var(--re);background:rgba(232,54,58,.12)}
+.search-status.have{color:var(--gn);background:var(--gnb)}
+.search-status.rep{color:var(--am);background:var(--amb)}
+.search-name{font-size:12px;color:var(--tx);margin-bottom:8px;line-height:1.35}
+.search-actions{display:grid;grid-template-columns:1fr 46px 46px;gap:6px}
+.search-actions button{height:36px;border-radius:9px;border:1px solid var(--bd);background:var(--s1);color:var(--tx);font-size:12px;font-weight:700}
+.search-actions button.add{border-color:var(--gn);color:var(--gn);background:var(--gnb)}
+.search-actions button.del{border-color:var(--re);color:var(--re);background:rgba(232,54,58,.1)}
+.stk.search-hit{outline:2px solid var(--go);box-shadow:0 0 0 4px rgba(245,166,35,.18);animation:hitPulse 1s ease-in-out 3}
+@keyframes hitPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 /* TEAM NAV */
 .tnav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .arr{width:42px;height:42px;flex-shrink:0;border-radius:10px;border:1px solid var(--bd);background:var(--s1);color:var(--tx);font-size:22px;display:flex;align-items:center;justify-content:center}
@@ -179,9 +206,20 @@ button,select,input{font-family:inherit;cursor:pointer}
     </div>
   </div>
 </div>
+<div class="modal-bg" id="search-modal-bg">
+  <div class="search-modal">
+    <h3>🔎 Buscar estampa</h3>
+    <p>Busca por código, número, país/equipo o nombre. Ejemplos: COL-13, 13, Colombia, Messi.</p>
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Escribe aquí..." autocomplete="off">
+      <button class="search-close" onclick="closeSearchModal()">×</button>
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
 <div class="app">
   <div class="hdr">
-    <div class="hdr-top"><div class="logo">Panini <span>2026</span> 🏆</div><div class="badge" id="pct-b">0%</div></div>
+    <div class="hdr-top"><div class="logo">Cromo<span>PRO</span> 🏆</div><div class="badge" id="pct-b">0%</div></div>
     <div class="stats">
       <div class="stat"><div class="sn g" id="s-t">0</div><div class="sl">Tengo</div></div>
       <div class="stat"><div class="sn r" id="s-f">980</div><div class="sl">Faltan</div></div>
@@ -192,6 +230,7 @@ button,select,input{font-family:inherit;cursor:pointer}
   <div class="body">
     <div class="pad" id="tab-album">
       <div class="ctrls">
+        <button class="ctrl search" id="btn-search" onclick="openSearchModal()" aria-label="Buscar estampa">🔎</button>
         <button class="ctrl on-a" id="btn-a" onclick="setMode('a')">＋ Agregar stiker</button>
         <button class="ctrl" id="btn-d" onclick="setMode('d')">－ Borrar stiker</button>
       </div>
@@ -811,6 +850,113 @@ function save(){
 function getName(s){return edits[s.c]||s.n;}
 function allS(){return SECTIONS.flatMap(s=>s.stickers);}
 
+function normSearch(v){
+  return String(v||'')
+    .toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,'')
+    .replace(/_/g,'-');
+}
+function findStickerInfo(code){
+  for(let si=0;si<SECTIONS.length;si++){
+    const sec=SECTIONS[si];
+    const st=sec.stickers.find(x=>x.c===code);
+    if(st)return {section:sec,sectionIndex:si,sticker:st};
+  }
+  return null;
+}
+function stickerStatus(code){
+  const q=stk[code]||0;
+  if(q>1)return {txt:`🔁 Repetida x${q}`,cls:'rep'};
+  if(q===1)return {txt:'✅ La tienes',cls:'have'};
+  return {txt:'❌ Te falta',cls:'miss'};
+}
+function openSearchModal(){
+  document.getElementById('search-modal-bg').classList.add('show');
+  const input=document.getElementById('search-input');
+  input.value='';
+  renderSearchResults('');
+  setTimeout(()=>input.focus(),100);
+}
+function closeSearchModal(){document.getElementById('search-modal-bg').classList.remove('show');}
+function getSearchMatches(q){
+  const raw=String(q||'').trim();
+  if(!raw)return [];
+  const nq=normSearch(raw);
+  const numberOnly=/^\d+$/.test(raw.trim());
+  const codeLike=nq.replace(/-/g,'');
+  const out=[];
+  SECTIONS.forEach((sec,si)=>{
+    const secText=normSearch(`${sec.g} ${sec.code} ${sec.label} ${sec.sub}`);
+    sec.stickers.forEach(st=>{
+      const codeNorm=normSearch(st.c);
+      const codeFlat=codeNorm.replace(/-/g,'');
+      const n=st.c.includes('-')?st.c.split('-')[1]:st.c;
+      const nameText=normSearch(`${st.n} ${getName(st)}`);
+      let score=0;
+      if(codeNorm===nq||codeFlat===codeLike)score=100;
+      else if(numberOnly&&n===raw.trim())score=80;
+      else if(codeNorm.includes(nq)||codeFlat.includes(codeLike))score=70;
+      else if(secText.includes(nq))score=45;
+      else if(nameText.includes(nq))score=35;
+      if(score)out.push({section:sec,sectionIndex:si,sticker:st,score});
+    });
+  });
+  return out.sort((a,b)=>b.score-a.score||a.sectionIndex-b.sectionIndex||a.sticker.c.localeCompare(b.sticker.c)).slice(0,40);
+}
+function renderSearchResults(q){
+  const box=document.getElementById('search-results');
+  const matches=getSearchMatches(q);
+  if(!q){box.innerHTML='<div class="search-empty">Escribe una estampa para consultar si la tienes o te falta.</div>';return;}
+  if(!matches.length){box.innerHTML='<div class="search-empty">No encontré coincidencias. Prueba con código completo, número o país.</div>';return;}
+  box.innerHTML='';
+  matches.forEach((m,idx)=>{
+    const st=m.sticker,sec=m.section,status=stickerStatus(st.c),qtty=stk[st.c]||0;
+    const card=document.createElement('div');
+    card.className='search-card'+(idx===0?' top':'');
+    card.innerHTML=`
+      <div class="search-head">
+        <div>
+          <div class="search-code">${st.c}</div>
+          <div class="search-team">${FLAGS[sec.code]||'🏳️'} ${sec.code} · ${sec.label}</div>
+        </div>
+        <div class="search-status ${status.cls}">${status.txt}</div>
+      </div>
+      <div class="search-name">${getName(st)} · Cantidad: ${qtty}</div>
+      <div class="search-actions">
+        <button onclick="goToSearchSticker('${st.c}')">Ir a la estampa</button>
+        <button class="add" onclick="changeStickerFromSearch('${st.c}',1)">+1</button>
+        <button class="del" onclick="changeStickerFromSearch('${st.c}',-1)">−1</button>
+      </div>`;
+    box.appendChild(card);
+  });
+}
+function goToSearchSticker(code){
+  const info=findStickerInfo(code);if(!info)return;
+  closeSearchModal();
+  setTab('album');
+  cur=info.sectionIndex;
+  renderSec();
+  setTimeout(()=>{
+    const el=document.querySelector(`.stk[data-code="${code}"]`);
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.classList.add('search-hit');
+      setTimeout(()=>el.classList.remove('search-hit'),3200);
+    }
+  },80);
+}
+function changeStickerFromSearch(code,delta){
+  if(delta>0)stk[code]=(stk[code]||0)+1;
+  else{if(!stk[code])return;stk[code]--;if(!stk[code])delete stk[code];}
+  save();updateStats();updateTprog();
+  if(curTab==='wa')updateMsg();
+  if(curTab==='qr')renderMyQR();
+  renderSec();
+  renderSearchResults(document.getElementById('search-input').value);
+}
+
+
 
 const FLAGS={
   FWC:'🏆',MUS:'🥇',MEX:'🇲🇽',RSA:'🇿🇦',KOR:'🇰🇷',CZE:'🇨🇿',CAN:'🇨🇦',BIH:'🇧🇦',QAT:'🇶🇦',SUI:'🇨🇭',
@@ -861,6 +1007,7 @@ function renderSec(){
     const q=stk[s.c]||0;
     const el=document.createElement('div');
     el.className='stk'+(s.f?' fl':'')+(q===1?' t':q>1?' rp':'');
+    el.dataset.code=s.c;
     el.innerHTML=`<div class="sc">${s.c}</div><div class="sn2">${getName(s)}</div>`
       +(s.f?'<div class="fs">★</div>':'')
       +(q>1?`<div class="rb">x${q}</div>`:'');
@@ -909,6 +1056,8 @@ function saveEdit(){
   save();closeModal();renderSec();
 }
 document.getElementById('modal-input').addEventListener('keydown',(e)=>{if(e.key==='Enter')saveEdit();});
+document.getElementById('search-input').addEventListener('input',(e)=>renderSearchResults(e.target.value));
+document.getElementById('search-input').addEventListener('keydown',(e)=>{if(e.key==='Escape')closeSearchModal();});
 
 function prevS(){if(cur>0){cur--;document.getElementById('tsel').value=cur;renderSec();}}
 function nextS(){if(cur<SECTIONS.length-1){cur++;document.getElementById('tsel').value=cur;renderSec();}}
