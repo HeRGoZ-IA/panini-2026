@@ -202,10 +202,11 @@ button,select,input{font-family:inherit;cursor:pointer}
 /* STICKER GRID 4 cols */
 .sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .stk-wrap{position:relative;}
-.stk{border-radius:8px;border:1px solid var(--bd);background:var(--s2);padding:6px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:68px;position:relative;-webkit-user-select:none;user-select:none;transition:transform .1s;width:100%;overflow:hidden;}
+.stk-wrap{position:relative;}
+.stk{border-radius:8px;border:1px solid var(--bd);background:var(--s2);padding:6px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:68px;width:100%;overflow:hidden;position:relative;-webkit-user-select:none;user-select:none;transition:transform .1s;}
 .stk:active{transform:scale(.91)}
 .sc{font-size:10px;font-weight:700;color:var(--mu);line-height:1.2;text-align:center}
-.sn2{font-size:8px;color:var(--hi);text-align:center;line-height:1.2;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;padding:0 4px;}
+.sn2{font-size:9px;color:var(--hi);text-align:center;line-height:1.2;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 3px;}
 .stk.t{background:var(--gnb);border-color:var(--gnd)}.stk.t .sc{color:var(--gn)}.stk.t .sn2{color:rgba(39,174,96,.75)}
 .stk.rp{background:var(--amb);border-color:var(--amd)}.stk.rp .sc{color:var(--am)}.stk.rp .sn2{color:rgba(230,126,34,.75)}
 .stk.fl{border-color:var(--pud)}.stk.fl .sc{color:var(--pu)}
@@ -903,6 +904,20 @@ function save(){
   }catch(e){}
 }
 function getName(s){return edits[s.c]||s.n;}
+function shortName(s){
+  const full=getName(s);
+  if(full.length<=14)return full;
+  const parts=full.trim().split(/\s+/);
+  if(parts.length===1)return full;
+  const surname=parts[parts.length-1];
+  const firstNames=parts.slice(0,parts.length-1);
+  const initials=firstNames.map(p=>p[0].toUpperCase()+'.').join('');
+  const abbr=initials+' '+surname;
+  if(abbr.length<=16)return abbr;
+  // Surname itself too long (hyphenated) — keep first part only
+  const surShort=surname.split('-')[0];
+  return initials+' '+surShort;
+}
 function allS(){return SECTIONS.flatMap(s=>s.stickers);}
 
 function normSearch(v){
@@ -1102,7 +1117,7 @@ function renderSec(){
     el.className='stk'+(foilCls?' '+foilCls:'')+(q===1?' t':q>1?' rp':'');
     el.dataset.code=s.c;
     const flagHtml=`<div class="stk-flag">${flag}</div>`;
-    el.innerHTML=flagHtml+`<div class="sc">${s.c}</div><div class="sn2">${getName(s)}</div>`
+    el.innerHTML=flagHtml+`<div class="sc">${s.c}</div><div class="sn2">${shortName(s)}</div>`
       +'<div class="stk-bar"></div>';
     wrap.appendChild(el);
     if(s.f){const fs=document.createElement('div');fs.className='fs';fs.textContent='★';wrap.appendChild(fs);}
@@ -1129,7 +1144,7 @@ function onStk(s,wrap,el){
   el.className='stk'+(foilCls?' '+foilCls:'')+(q===1?' t':q>1?' rp':'');
   const ob=wrap.querySelector('.rb');if(ob)ob.remove();
   if(q>1){const b=document.createElement('div');b.className='rb';b.textContent='x'+q;wrap.appendChild(b);}
-  const sn=el.querySelector('.sn2');if(sn)sn.textContent=getName(s);
+  const sn=el.querySelector('.sn2');if(sn)sn.textContent=shortName(s);
   if(!el.querySelector('.stk-flag')){const f=document.createElement('div');f.className='stk-flag';f.textContent=flag;el.insertBefore(f,el.firstChild);}
   if(!el.querySelector('.stk-bar')){const b=document.createElement('div');b.className='stk-bar';el.appendChild(b);}
 }
