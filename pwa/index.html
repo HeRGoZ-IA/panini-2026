@@ -66,7 +66,8 @@
 .stk.fl{background:linear-gradient(105deg,#1a0a2e 0%,#2d1b4e 40%,#1a0a2e 60%,#0d1a3a 100%)!important;border-color:transparent!important;}
 .stk.fl::before{content:'';position:absolute;inset:0;border-radius:7px;background:linear-gradient(105deg,transparent 20%,rgba(167,139,250,.2) 35%,rgba(236,72,153,.25) 50%,rgba(245,158,11,.2) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;pointer-events:none;z-index:1;overflow:hidden;}
 .stk.fl .sc,.stk.fl .sn2,.stk.fl .fs,.stk.fl .rb,.stk.fl .stk-bar,.stk.fl .stk-flag{position:relative;z-index:3;}
-.stk.fl .sc{color:#c4b5fd!important;}.stk.fl .sn2{color:rgba(196,181,253,.7)!important;}.stk.fl .fs{color:#f0abfc!important;}
+.stk.fl .sc{color:#c4b5fd!important;}.stk.fl .sn2{color:rgba(196,181,253,.7)!important;}
+.stk-wrap:has(.fl) .fs{color:#f0abfc!important;}
 .stk.fl.t{background:linear-gradient(105deg,#0f2a1a 0%,#1a4a2e 40%,#0f2a1a 60%,#0a2420 100%)!important;border:2px solid #27ae60!important;}
 .stk.fl.t::before{background:linear-gradient(105deg,transparent 20%,rgba(74,222,128,.22) 35%,rgba(167,243,208,.28) 50%,rgba(52,211,153,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
 .stk.fl.t .sc{color:#4ade80!important;}
@@ -81,7 +82,8 @@
 .stk.fl-cc{background:linear-gradient(105deg,#1a0000 0%,#2e0a0a 40%,#1a0000 60%,#120000 100%)!important;border-color:rgba(232,54,58,.5)!important;}
 .stk.fl-cc::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.22) 35%,rgba(255,120,100,.28) 50%,rgba(232,54,58,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;content:'';position:absolute;inset:0;border-radius:7px;pointer-events:none;z-index:1;}
 .stk.fl-cc .sc,.stk.fl-cc .sn2,.stk.fl-cc .fs,.stk.fl-cc .rb,.stk.fl-cc .stk-flag,.stk.fl-cc .stk-bar{position:relative;z-index:3;}
-.stk.fl-cc .sc{color:#ff6b6b!important;}.stk.fl-cc .sn2{color:rgba(255,107,107,.7)!important;}.stk.fl-cc .fs{color:#ff6b6b!important;}
+.stk.fl-cc .sc{color:#ff6b6b!important;}.stk.fl-cc .sn2{color:rgba(255,107,107,.7)!important;}
+.stk-wrap:has(.fl-cc) .fs{color:#ff6b6b!important;}
 .stk.fl-cc.t{background:linear-gradient(105deg,#1a0005 0%,#2e001a 40%,#1a0005 60%,#120004 100%)!important;border:2px solid #27ae60!important;}
 .stk.fl-cc.t::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.18) 35%,rgba(74,222,128,.22) 50%,rgba(232,54,58,.18) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
 .stk.fl-cc.t .sc{color:#4ade80!important;}
@@ -208,7 +210,7 @@ button,select,input{font-family:inherit;cursor:pointer}
 .stk.rp{background:var(--amb);border-color:var(--amd)}.stk.rp .sc{color:var(--am)}.stk.rp .sn2{color:rgba(230,126,34,.75)}
 .stk.fl{border-color:var(--pud)}.stk.fl .sc{color:var(--pu)}
 .rb{position:absolute;top:3px;right:4px;font-size:8px;font-weight:700;color:var(--am);z-index:20;pointer-events:none;background:rgba(0,0,0,.5);border-radius:3px;padding:0 2px;line-height:1.5;}
-.fs{position:absolute;top:3px;left:4px;font-size:8px;color:var(--pu);z-index:10;pointer-events:none;}
+.fs{position:absolute;top:3px;left:4px;font-size:8px;color:var(--pu);z-index:20;pointer-events:none;}
 /* EDIT MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;display:none}
 .modal-bg.show{display:flex}
@@ -1101,9 +1103,9 @@ function renderSec(){
     el.dataset.code=s.c;
     const flagHtml=`<div class="stk-flag">${flag}</div>`;
     el.innerHTML=flagHtml+`<div class="sc">${s.c}</div><div class="sn2">${getName(s)}</div>`
-      +(s.f?'<div class="fs">★</div>':'')
       +'<div class="stk-bar"></div>';
     wrap.appendChild(el);
+    if(s.f){const fs=document.createElement('div');fs.className='fs';fs.textContent='★';wrap.appendChild(fs);}
     if(q>1){const rb=document.createElement('div');rb.className='rb';rb.textContent='x'+q;wrap.appendChild(rb);}
     el.addEventListener('click',()=>onStk(s,wrap,el));
     el.addEventListener('contextmenu',(e)=>{e.preventDefault();openModal(s);});
