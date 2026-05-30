@@ -67,12 +67,27 @@
 .stk.fl::before{content:'';position:absolute;inset:0;border-radius:7px;background:linear-gradient(105deg,transparent 20%,rgba(167,139,250,.2) 35%,rgba(236,72,153,.25) 50%,rgba(245,158,11,.2) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;pointer-events:none;z-index:1;}
 .stk.fl .sc,.stk.fl .sn2,.stk.fl .fs,.stk.fl .rb{position:relative;z-index:2;}
 .stk.fl .sc{color:#c4b5fd!important;}.stk.fl .sn2{color:rgba(196,181,253,.7)!important;}.stk.fl .fs{color:#f0abfc!important;}
-.stk.fl.t{background:linear-gradient(105deg,#0f2a1a 0%,#1a4a2e 40%,#0f2a1a 60%,#0a2420 100%)!important;border-color:transparent!important;}
+.stk.fl.t{background:linear-gradient(105deg,#0f2a1a 0%,#1a4a2e 40%,#0f2a1a 60%,#0a2420 100%)!important;border:2px solid #27ae60!important;}
 .stk.fl.t::before{background:linear-gradient(105deg,transparent 20%,rgba(74,222,128,.22) 35%,rgba(167,243,208,.28) 50%,rgba(52,211,153,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
 .stk.fl.t .sc{color:#4ade80!important;}
-.stk.fl.rp{background:linear-gradient(105deg,#2a1800 0%,#4a2e00 40%,#2a1800 60%,#241400 100%)!important;border-color:transparent!important;}
+.stk.fl.rp{background:linear-gradient(105deg,#2a1800 0%,#4a2e00 40%,#2a1800 60%,#241400 100%)!important;border:2px solid #f5a623!important;}
 .stk.fl.rp::before{background:linear-gradient(105deg,transparent 20%,rgba(251,191,36,.22) 35%,rgba(245,158,11,.28) 50%,rgba(251,191,36,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
 .stk.fl.rp .sc{color:#fbbf24!important;}
+/* Coca-Cola FOIL rojo */
+.stk.fl-cc{background:linear-gradient(105deg,#1a0000 0%,#2e0a0a 40%,#1a0000 60%,#120000 100%)!important;border-color:rgba(232,54,58,.5)!important;overflow:hidden;}
+.stk.fl-cc::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.22) 35%,rgba(255,120,100,.28) 50%,rgba(232,54,58,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;content:'';position:absolute;inset:0;border-radius:7px;pointer-events:none;z-index:1;}
+.stk.fl-cc .sc{color:#ff6b6b!important;}.stk.fl-cc .sn2{color:rgba(255,107,107,.7)!important;}.stk.fl-cc .fs{color:#ff6b6b!important;}
+.stk.fl-cc .sc,.stk.fl-cc .sn2,.stk.fl-cc .fs,.stk.fl-cc .rb,.stk.fl-cc .stk-flag,.stk.fl-cc .stk-bar{position:relative;z-index:2;}
+.stk.fl-cc.t{background:linear-gradient(105deg,#1a0005 0%,#2e001a 40%,#1a0005 60%,#120004 100%)!important;border:2px solid #27ae60!important;}
+.stk.fl-cc.t::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.18) 35%,rgba(74,222,128,.22) 50%,rgba(232,54,58,.18) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
+.stk.fl-cc.t .sc{color:#4ade80!important;}
+.stk.fl-cc.rp{background:linear-gradient(105deg,#1a0000 0%,#2e0808 40%,#1a0000 60%,#120000 100%)!important;border:2px solid #f5a623!important;}
+.stk.fl-cc.rp::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.18) 35%,rgba(251,191,36,.22) 50%,rgba(232,54,58,.18) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
+.stk.fl-cc.rp .sc{color:#fbbf24!important;}
+/* Flag background in team nav */
+.tnav{position:relative;overflow:hidden;border-radius:12px;}
+.tnav-flag-bg{position:absolute;inset:0;font-size:90px;display:flex;align-items:center;justify-content:center;line-height:1;opacity:.13;pointer-events:none;z-index:0;letter-spacing:-10px;filter:blur(0px);transform:scale(1.4);}
+.tnav .arr,.tnav .tinfo{position:relative;z-index:1;}
 .stk-flag{font-size:16px;line-height:1;margin-bottom:1px;}
 .stk-bar{position:absolute;bottom:0;left:0;right:0;height:4px;border-radius:0 0 7px 7px;}
 .stk.t{border:2px solid #27ae60!important;background:rgba(39,174,96,.11)!important;}
@@ -176,8 +191,6 @@ button,select,input{font-family:inherit;cursor:pointer}
 .stk.t{background:var(--gnb);border-color:var(--gnd)}.stk.t .sc{color:var(--gn)}.stk.t .sn2{color:rgba(39,174,96,.75)}
 .stk.rp{background:var(--amb);border-color:var(--amd)}.stk.rp .sc{color:var(--am)}.stk.rp .sn2{color:rgba(230,126,34,.75)}
 .stk.fl{border-color:var(--pud)}.stk.fl .sc{color:var(--pu)}
-.stk.fl.t{background:var(--pub)}.stk.fl.t .sc{color:#a78bfa}
-.stk.fl.rp{background:var(--amb)}
 .rb{position:absolute;top:3px;right:4px;font-size:8px;font-weight:700;color:var(--am)}
 .fs{position:absolute;top:3px;left:4px;font-size:8px;color:var(--pu)}
 /* EDIT MODAL */
@@ -259,7 +272,7 @@ button,select,input{font-family:inherit;cursor:pointer}
         <button class="ctrl" id="btn-d" onclick="setMode('d')">－ Borrar stiker</button>
       </div>
       <select class="tsel" id="tsel" onchange="goSec(this.value)"></select>
-      <div class="tnav">
+      <div class="tnav" id="tnav-main">
         <button class="arr" id="arr-p" onclick="prevS()">‹</button>
         <div class="tinfo"><div class="tname" id="tname">—</div><div class="tsub" id="tsub">—</div></div>
         <button class="arr" id="arr-n" onclick="nextS()">›</button>
@@ -402,7 +415,7 @@ button,select,input{font-family:inherit;cursor:pointer}
 // ===================== DATOS OFICIALES =====================
 const SECTIONS=[
  {g:'Portada',code:'FWC',label:'Portada & Copa Mundial',sub:'00 + FWC1–FWC8',stickers:[
-  {c:'00',n:'Panini Logo'},{c:'FWC-1',n:'Official Emblem',f:1},{c:'FWC-2',n:'Official Emblem',f:1},
+  {c:'00',n:'Panini Logo',f:1},{c:'FWC-1',n:'Official Emblem',f:1},{c:'FWC-2',n:'Official Emblem',f:1},
   {c:'FWC-3',n:'Official Mascots',f:1},{c:'FWC-4',n:'Official Slogan',f:1},{c:'FWC-5',n:'Official Ball',f:1},
   {c:'FWC-6',n:'Canadá Sede',f:1},{c:'FWC-7',n:'México Sede',f:1},{c:'FWC-8',n:'USA Sede',f:1}
  ]},
@@ -847,11 +860,11 @@ const SECTIONS=[
   {c:'FWC-19',n:'Argentina 2022',f:1}
  ]},
  {g:'Coca-Cola',code:'CC',label:'Láminas Coca-Cola',sub:'CC1–CC14 (especiales)',stickers:[
-  {c:'CC-1',n:'Jugador Coca-Cola',f:1},{c:'CC-2',n:'Jugador Coca-Cola',f:1},{c:'CC-3',n:'Jugador Coca-Cola',f:1},
-  {c:'CC-4',n:'Jugador Coca-Cola',f:1},{c:'CC-5',n:'Jugador Coca-Cola',f:1},{c:'CC-6',n:'Jugador Coca-Cola',f:1},
-  {c:'CC-7',n:'Jugador Coca-Cola',f:1},{c:'CC-8',n:'Jugador Coca-Cola',f:1},{c:'CC-9',n:'Jugador Coca-Cola',f:1},
-  {c:'CC-10',n:'Jugador Coca-Cola',f:1},{c:'CC-11',n:'Jefferson Lerma',f:1},{c:'CC-12',n:'Jugador Coca-Cola',f:1},
-  {c:'CC-13',n:'Jugador Coca-Cola',f:1},{c:'CC-14',n:'Jugador Coca-Cola',f:1}
+  {c:'CC-1',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-2',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-3',n:'Jugador Coca-Cola',f:1,cc:1},
+  {c:'CC-4',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-5',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-6',n:'Jugador Coca-Cola',f:1,cc:1},
+  {c:'CC-7',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-8',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-9',n:'Jugador Coca-Cola',f:1,cc:1},
+  {c:'CC-10',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-11',n:'Jefferson Lerma',f:1,cc:1},{c:'CC-12',n:'Jugador Coca-Cola',f:1,cc:1},
+  {c:'CC-13',n:'Jugador Coca-Cola',f:1,cc:1},{c:'CC-14',n:'Jugador Coca-Cola',f:1,cc:1}
  ]}
 ];
 
@@ -1053,11 +1066,20 @@ function renderSec(){
   if(hdr){hdr.style.background=hdrColors.bg;hdr.style.borderBottomColor=hdrColors.border;}
   const flagEl=document.getElementById('hdr-flag-big');
   if(flagEl){flagEl.textContent=flag;}
+  // Flag background in tnav
+  const tnav=document.getElementById('tnav-main');
+  if(tnav){
+    let bg=tnav.querySelector('.tnav-flag-bg');
+    if(!bg){bg=document.createElement('div');bg.className='tnav-flag-bg';tnav.insertBefore(bg,tnav.firstChild);}
+    bg.textContent=flag+' '+flag+'\n'+flag+' '+flag;
+  }
   const grid=document.getElementById('grid');grid.innerHTML='';
   sec.stickers.forEach(s=>{
     const q=stk[s.c]||0;
+    const isCc=!!s.cc;
+    const foilCls=isCc?'fl-cc':(s.f?'fl':'');
     const el=document.createElement('div');
-    el.className='stk'+(s.f?' fl':'')+(q===1?' t':q>1?' rp':'');
+    el.className='stk'+(foilCls?' '+foilCls:'')+(q===1?' t':q>1?' rp':'');
     el.dataset.code=s.c;
     const flagHtml=`<div class="stk-flag">${flag}</div>`;
     el.innerHTML=flagHtml+`<div class="sc">${s.c}</div><div class="sn2">${getName(s)}</div>`
@@ -1081,11 +1103,12 @@ function onStk(s,el){
   const q=stk[s.c]||0;
   const sec=SECTIONS[cur];
   const flag=FLAGS[sec.code]||'🏆';
-  el.className='stk'+(s.f?' fl':'')+(q===1?' t':q>1?' rp':'');
+  const isCc=!!s.cc;
+  const foilCls=isCc?'fl-cc':(s.f?'fl':'');
+  el.className='stk'+(foilCls?' '+foilCls:'')+(q===1?' t':q>1?' rp':'');
   const ob=el.querySelector('.rb');if(ob)ob.remove();
   if(q>1){const b=document.createElement('div');b.className='rb';b.textContent='x'+q;el.appendChild(b);}
   const sn=el.querySelector('.sn2');if(sn)sn.textContent=getName(s);
-  // ensure flag and bar exist
   if(!el.querySelector('.stk-flag')){const f=document.createElement('div');f.className='stk-flag';f.textContent=flag;el.insertBefore(f,el.firstChild);}
   if(!el.querySelector('.stk-bar')){const b=document.createElement('div');b.className='stk-bar';el.appendChild(b);}
 }
