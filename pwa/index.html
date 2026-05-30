@@ -86,7 +86,18 @@
 .stk.fl-cc.rp .sc{color:#fbbf24!important;}
 /* Flag background in team nav */
 .tnav{position:relative;overflow:hidden;border-radius:12px;}
-.tnav-flag-bg{position:absolute;inset:0;font-size:90px;display:flex;align-items:center;justify-content:center;line-height:1;opacity:.13;pointer-events:none;z-index:0;letter-spacing:-10px;filter:blur(0px);transform:scale(1.4);}
+.tnav-flag-bg{
+  position:absolute;
+  inset:-30px;
+  font-size:160px;
+  line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  opacity:.28;
+  pointer-events:none;
+  z-index:0;
+  transform:rotate(-15deg) scale(1.1);
+  transform-origin:center center;
+}
 .tnav .arr,.tnav .tinfo{position:relative;z-index:1;}
 .stk-flag{font-size:16px;line-height:1;margin-bottom:1px;}
 .stk-bar{position:absolute;bottom:0;left:0;right:0;height:4px;border-radius:0 0 7px 7px;}
@@ -1071,7 +1082,7 @@ function renderSec(){
   if(tnav){
     let bg=tnav.querySelector('.tnav-flag-bg');
     if(!bg){bg=document.createElement('div');bg.className='tnav-flag-bg';tnav.insertBefore(bg,tnav.firstChild);}
-    bg.textContent=flag+' '+flag+'\n'+flag+' '+flag;
+    bg.textContent=flag;
   }
   const grid=document.getElementById('grid');grid.innerHTML='';
   sec.stickers.forEach(s=>{
