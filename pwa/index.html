@@ -206,8 +206,8 @@ button,select,input{font-family:inherit;cursor:pointer}
 .stk.t{background:var(--gnb);border-color:var(--gnd)}.stk.t .sc{color:var(--gn)}.stk.t .sn2{color:rgba(39,174,96,.75)}
 .stk.rp{background:var(--amb);border-color:var(--amd)}.stk.rp .sc{color:var(--am)}.stk.rp .sn2{color:rgba(230,126,34,.75)}
 .stk.fl{border-color:var(--pud)}.stk.fl .sc{color:var(--pu)}
-.rb{position:absolute;top:3px;right:4px;font-size:8px;font-weight:700;color:var(--am);z-index:3;}
-.fs{position:absolute;top:3px;left:4px;font-size:8px;color:var(--pu);z-index:3;}
+.rb{position:absolute;top:3px;right:4px;font-size:8px;font-weight:700;color:var(--am);z-index:10;pointer-events:none;isolation:isolate;}
+.fs{position:absolute;top:3px;left:4px;font-size:8px;color:var(--pu);z-index:10;pointer-events:none;}
 /* EDIT MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;display:none}
 .modal-bg.show{display:flex}
@@ -1099,8 +1099,8 @@ function renderSec(){
     const flagHtml=`<div class="stk-flag">${flag}</div>`;
     el.innerHTML=flagHtml+`<div class="sc">${s.c}</div><div class="sn2">${getName(s)}</div>`
       +(s.f?'<div class="fs">★</div>':'')
-      +(q>1?`<div class="rb">x${q}</div>`:'')
       +'<div class="stk-bar"></div>';
+    if(q>1){const rb=document.createElement('div');rb.className='rb';rb.textContent='x'+q;el.appendChild(rb);}
     el.addEventListener('click',()=>onStk(s,el));
     el.addEventListener('contextmenu',(e)=>{e.preventDefault();openModal(s);});
     let lt;
