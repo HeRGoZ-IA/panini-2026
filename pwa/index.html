@@ -63,27 +63,31 @@
 .wag2-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 /* ===== MEJORAS VISUALES v2 ===== */
 @keyframes foilShimmer{0%{background-position:200% center}100%{background-position:-200% center}}
-.stk.fl{background:linear-gradient(105deg,#1a0a2e 0%,#2d1b4e 40%,#1a0a2e 60%,#0d1a3a 100%)!important;border-color:transparent!important;overflow:hidden;}
-.stk.fl::before{content:'';position:absolute;inset:0;border-radius:7px;background:linear-gradient(105deg,transparent 20%,rgba(167,139,250,.2) 35%,rgba(236,72,153,.25) 50%,rgba(245,158,11,.2) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;pointer-events:none;z-index:1;}
-.stk.fl .sc,.stk.fl .sn2,.stk.fl .fs,.stk.fl .rb,.stk.fl .stk-bar{position:relative;z-index:3;}
+.stk.fl{background:linear-gradient(105deg,#1a0a2e 0%,#2d1b4e 40%,#1a0a2e 60%,#0d1a3a 100%)!important;border-color:transparent!important;}
+.stk.fl::before{content:'';position:absolute;inset:0;border-radius:7px;background:linear-gradient(105deg,transparent 20%,rgba(167,139,250,.2) 35%,rgba(236,72,153,.25) 50%,rgba(245,158,11,.2) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;pointer-events:none;z-index:1;overflow:hidden;}
+.stk.fl .sc,.stk.fl .sn2,.stk.fl .fs,.stk.fl .rb,.stk.fl .stk-bar,.stk.fl .stk-flag{position:relative;z-index:3;}
 .stk.fl .sc{color:#c4b5fd!important;}.stk.fl .sn2{color:rgba(196,181,253,.7)!important;}.stk.fl .fs{color:#f0abfc!important;}
 .stk.fl.t{background:linear-gradient(105deg,#0f2a1a 0%,#1a4a2e 40%,#0f2a1a 60%,#0a2420 100%)!important;border:2px solid #27ae60!important;}
 .stk.fl.t::before{background:linear-gradient(105deg,transparent 20%,rgba(74,222,128,.22) 35%,rgba(167,243,208,.28) 50%,rgba(52,211,153,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
-.stk.fl.t .sc{color:#4ade80!important;}.stk.fl.t .stk-bar{background:#27ae60!important;}
+.stk.fl.t .sc{color:#4ade80!important;}
 .stk.fl.rp{background:linear-gradient(105deg,#2a1800 0%,#4a2e00 40%,#2a1800 60%,#241400 100%)!important;border:2px solid #f5a623!important;}
 .stk.fl.rp::before{background:linear-gradient(105deg,transparent 20%,rgba(251,191,36,.22) 35%,rgba(245,158,11,.28) 50%,rgba(251,191,36,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
-.stk.fl.rp .sc{color:#fbbf24!important;}.stk.fl.rp .stk-bar{background:#f5a623!important;}
+.stk.fl.rp .sc{color:#fbbf24!important;}
+/* FOIL state bar via ::after — avoids z-index/overflow conflict with ::before shimmer */
+.stk.fl.t::after,.stk.fl.rp::after,.stk.fl-cc.t::after,.stk.fl-cc.rp::after{content:'';position:absolute;bottom:0;left:0;right:0;height:4px;border-radius:0 0 7px 7px;z-index:4;}
+.stk.fl.t::after,.stk.fl-cc.t::after{background:#27ae60;}
+.stk.fl.rp::after,.stk.fl-cc.rp::after{background:#f5a623;}
 /* Coca-Cola FOIL rojo */
-.stk.fl-cc{background:linear-gradient(105deg,#1a0000 0%,#2e0a0a 40%,#1a0000 60%,#120000 100%)!important;border-color:rgba(232,54,58,.5)!important;overflow:hidden;}
+.stk.fl-cc{background:linear-gradient(105deg,#1a0000 0%,#2e0a0a 40%,#1a0000 60%,#120000 100%)!important;border-color:rgba(232,54,58,.5)!important;}
 .stk.fl-cc::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.22) 35%,rgba(255,120,100,.28) 50%,rgba(232,54,58,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;content:'';position:absolute;inset:0;border-radius:7px;pointer-events:none;z-index:1;}
 .stk.fl-cc .sc,.stk.fl-cc .sn2,.stk.fl-cc .fs,.stk.fl-cc .rb,.stk.fl-cc .stk-flag,.stk.fl-cc .stk-bar{position:relative;z-index:3;}
 .stk.fl-cc .sc{color:#ff6b6b!important;}.stk.fl-cc .sn2{color:rgba(255,107,107,.7)!important;}.stk.fl-cc .fs{color:#ff6b6b!important;}
 .stk.fl-cc.t{background:linear-gradient(105deg,#1a0005 0%,#2e001a 40%,#1a0005 60%,#120004 100%)!important;border:2px solid #27ae60!important;}
 .stk.fl-cc.t::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.18) 35%,rgba(74,222,128,.22) 50%,rgba(232,54,58,.18) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
-.stk.fl-cc.t .sc{color:#4ade80!important;}.stk.fl-cc.t .stk-bar{background:#27ae60!important;}
+.stk.fl-cc.t .sc{color:#4ade80!important;}
 .stk.fl-cc.rp{background:linear-gradient(105deg,#1a0000 0%,#2e0808 40%,#1a0000 60%,#120000 100%)!important;border:2px solid #f5a623!important;}
 .stk.fl-cc.rp::before{background:linear-gradient(105deg,transparent 20%,rgba(232,54,58,.18) 35%,rgba(251,191,36,.22) 50%,rgba(232,54,58,.18) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
-.stk.fl-cc.rp .sc{color:#fbbf24!important;}.stk.fl-cc.rp .stk-bar{background:#f5a623!important;}
+.stk.fl-cc.rp .sc{color:#fbbf24!important;}
 /* Flag background in team nav */
 .tnav{position:relative;overflow:hidden;border-radius:12px;}
 .tnav-flag-bg{
@@ -1118,7 +1122,11 @@ function onStk(s,el){
   const foilCls=isCc?'fl-cc':(s.f?'fl':'');
   el.className='stk'+(foilCls?' '+foilCls:'')+(q===1?' t':q>1?' rp':'');
   const ob=el.querySelector('.rb');if(ob)ob.remove();
-  if(q>1){const b=document.createElement('div');b.className='rb';b.textContent='x'+q;el.appendChild(b);}
+  if(q>1){
+    const b=document.createElement('div');b.className='rb';b.textContent='x'+q;
+    const bar=el.querySelector('.stk-bar');
+    if(bar)el.insertBefore(b,bar);else el.appendChild(b);
+  }
   const sn=el.querySelector('.sn2');if(sn)sn.textContent=getName(s);
   if(!el.querySelector('.stk-flag')){const f=document.createElement('div');f.className='stk-flag';f.textContent=flag;el.insertBefore(f,el.firstChild);}
   if(!el.querySelector('.stk-bar')){const b=document.createElement('div');b.className='stk-bar';el.appendChild(b);}
