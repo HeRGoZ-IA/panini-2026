@@ -61,6 +61,30 @@
 /* WHATSAPP NEW FORMAT */
 .wag2{background:var(--s2);border-radius:10px;padding:8px 10px;margin-bottom:8px}
 .wag2-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+/* ===== MEJORAS VISUALES v2 ===== */
+@keyframes foilShimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+.stk.fl{background:linear-gradient(105deg,#1a0a2e 0%,#2d1b4e 40%,#1a0a2e 60%,#0d1a3a 100%)!important;border-color:transparent!important;overflow:hidden;}
+.stk.fl::before{content:'';position:absolute;inset:0;border-radius:7px;background:linear-gradient(105deg,transparent 20%,rgba(167,139,250,.2) 35%,rgba(236,72,153,.25) 50%,rgba(245,158,11,.2) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;pointer-events:none;z-index:1;}
+.stk.fl .sc,.stk.fl .sn2,.stk.fl .fs,.stk.fl .rb{position:relative;z-index:2;}
+.stk.fl .sc{color:#c4b5fd!important;}.stk.fl .sn2{color:rgba(196,181,253,.7)!important;}.stk.fl .fs{color:#f0abfc!important;}
+.stk.fl.t{background:linear-gradient(105deg,#0f2a1a 0%,#1a4a2e 40%,#0f2a1a 60%,#0a2420 100%)!important;border-color:transparent!important;}
+.stk.fl.t::before{background:linear-gradient(105deg,transparent 20%,rgba(74,222,128,.22) 35%,rgba(167,243,208,.28) 50%,rgba(52,211,153,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
+.stk.fl.t .sc{color:#4ade80!important;}
+.stk.fl.rp{background:linear-gradient(105deg,#2a1800 0%,#4a2e00 40%,#2a1800 60%,#241400 100%)!important;border-color:transparent!important;}
+.stk.fl.rp::before{background:linear-gradient(105deg,transparent 20%,rgba(251,191,36,.22) 35%,rgba(245,158,11,.28) 50%,rgba(251,191,36,.22) 65%,transparent 80%);background-size:200% 100%;animation:foilShimmer 3s linear infinite;}
+.stk.fl.rp .sc{color:#fbbf24!important;}
+.stk-flag{font-size:16px;line-height:1;margin-bottom:1px;}
+.stk-bar{position:absolute;bottom:0;left:0;right:0;height:4px;border-radius:0 0 7px 7px;}
+.stk.t{border:2px solid #27ae60!important;background:rgba(39,174,96,.11)!important;}
+.stk.t .sc{color:#4ade80;}.stk.t .sn2{color:rgba(74,222,128,.72);}
+.stk.t .stk-bar{background:#27ae60;}
+.stk.rp{border:2px solid #f5a623!important;background:rgba(245,166,35,.11)!important;}
+.stk.rp .sc{color:#f5a623;}.stk.rp .sn2{color:rgba(245,166,35,.72);}
+.stk.rp .stk-bar{background:#f5a623;}
+.stk:not(.t):not(.rp):not(.fl){opacity:.6;}
+.stk:not(.t):not(.rp):not(.fl):hover,.stk:not(.t):not(.rp):not(.fl):active{opacity:1;}
+.hdr{transition:background .4s,border-color .4s;}
+.hdr-flag-big{font-size:26px;line-height:1;margin-right:6px;vertical-align:middle;display:inline-block;}
 .wag2-flag{font-size:16px;line-height:1}
 .wag2-code{font-size:12px;font-weight:700;color:var(--go);white-space:nowrap}
 .wag2-nums{font-size:12px;color:var(--tx);flex:1}
@@ -218,8 +242,8 @@ button,select,input{font-family:inherit;cursor:pointer}
   </div>
 </div>
 <div class="app">
-  <div class="hdr">
-    <div class="hdr-top"><div class="logo">Cromo<span>PRO</span> 🏆</div><div class="badge" id="pct-b">0%</div></div>
+  <div class="hdr" id="hdr-main">
+    <div class="hdr-top"><div class="logo">Cromo<span>PRO</span> 🏆</div><div style="display:flex;align-items:center;gap:8px"><span id="hdr-flag-big" class="hdr-flag-big"></span><div class="badge" id="pct-b">0%</div></div></div>
     <div class="stats">
       <div class="stat"><div class="sn g" id="s-t">0</div><div class="sl">Tengo</div></div>
       <div class="stat"><div class="sn r" id="s-f">980</div><div class="sl">Faltan</div></div>
@@ -960,11 +984,31 @@ function changeStickerFromSearch(code,delta){
 
 const FLAGS={
   FWC:'🏆',MUS:'🥇',MEX:'🇲🇽',RSA:'🇿🇦',KOR:'🇰🇷',CZE:'🇨🇿',CAN:'🇨🇦',BIH:'🇧🇦',QAT:'🇶🇦',SUI:'🇨🇭',
-  BRA:'🇧🇷',MAR:'🇲🇦',HAI:'🇭🇹',SCO:'🏴',USA:'🇺🇸',PAR:'🇵🇾',AUS:'🇦🇺',TUR:'🇹🇷',
+  BRA:'🇧🇷',MAR:'🇲🇦',HAI:'🇭🇹',SCO:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',USA:'🇺🇸',PAR:'🇵🇾',AUS:'🇦🇺',TUR:'🇹🇷',
   GER:'🇩🇪',CUW:'🇨🇼',CIV:'🇨🇮',ECU:'🇪🇨',NED:'🇳🇱',JPN:'🇯🇵',SWE:'🇸🇪',TUN:'🇹🇳',
   BEL:'🇧🇪',EGY:'🇪🇬',IRN:'🇮🇷',NZL:'🇳🇿',ESP:'🇪🇸',CPV:'🇨🇻',KSA:'🇸🇦',URU:'🇺🇾',
   FRA:'🇫🇷',SEN:'🇸🇳',IRQ:'🇮🇶',NOR:'🇳🇴',ARG:'🇦🇷',ALG:'🇩🇿',AUT:'🇦🇹',JOR:'🇯🇴',
-  POR:'🇵🇹',COD:'🇨🇩',UZB:'🇺🇿',COL:'🇨🇴',ENG:'🏴',CRO:'🇭🇷',GHA:'🇬🇭',PAN:'🇵🇦',CC:'🥤'
+  POR:'🇵🇹',COD:'🇨🇩',UZB:'🇺🇿',COL:'🇨🇴',ENG:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',CRO:'🇭🇷',GHA:'🇬🇭',PAN:'🇵🇦',CC:'🥤'
+};
+
+const TEAM_COLORS={
+  MEX:{bg:'#0a2200',border:'#006400'},RSA:{bg:'#001a00',border:'#007a4d'},KOR:{bg:'#1a000a',border:'#c60c30'},
+  CZE:{bg:'#001233',border:'#d7141a'},CAN:{bg:'#1a0000',border:'#d52b1e'},BIH:{bg:'#00102e',border:'#002395'},
+  QAT:{bg:'#1a0010',border:'#8d1b3d'},SUI:{bg:'#1a0000',border:'#ff0000'},BRA:{bg:'#001a0d',border:'#009c3b'},
+  MAR:{bg:'#1a0005',border:'#c1272d'},HAI:{bg:'#000d1a',border:'#00209f'},SCO:{bg:'#000d1a',border:'#005eb8'},
+  USA:{bg:'#000d1a',border:'#bf0a30'},PAR:{bg:'#1a0000',border:'#d52b1e'},AUS:{bg:'#001a00',border:'#00843d'},
+  TUR:{bg:'#1a0000',border:'#e30a17'},GER:{bg:'#1a1200',border:'#ffcc00'},CUW:{bg:'#000d1a',border:'#003087'},
+  CIV:{bg:'#1a0800',border:'#f77f00'},ECU:{bg:'#001500',border:'#ffd100'},NED:{bg:'#1a0800',border:'#ff6600'},
+  JPN:{bg:'#1a0000',border:'#bc002d'},SWE:{bg:'#001533',border:'#006aa7'},TUN:{bg:'#1a0000',border:'#e70013'},
+  BEL:{bg:'#1a0000',border:'#ef3340'},EGY:{bg:'#1a0000',border:'#ce1126'},IRN:{bg:'#001a00',border:'#239f40'},
+  NZL:{bg:'#000d1a',border:'#00247d'},ESP:{bg:'#1a0000',border:'#c60b1e'},CPV:{bg:'#000d1a',border:'#003893'},
+  KSA:{bg:'#001500',border:'#006c35'},URU:{bg:'#001533',border:'#5aaaa8'},FRA:{bg:'#000d1a',border:'#0055a4'},
+  SEN:{bg:'#001500',border:'#00853f'},IRQ:{bg:'#001500',border:'#007a3d'},NOR:{bg:'#1a0000',border:'#ef2b2d'},
+  ARG:{bg:'#001533',border:'#74acdf'},ALG:{bg:'#001500',border:'#006233'},AUT:{bg:'#1a0000',border:'#ed2939'},
+  JOR:{bg:'#1a0000',border:'#007a3d'},POR:{bg:'#001500',border:'#006600'},COD:{bg:'#00101a',border:'#007fff'},
+  UZB:{bg:'#001533',border:'#1eb53a'},COL:{bg:'#1a1200',border:'#fcd116'},ENG:{bg:'#1a0000',border:'#cf142b'},
+  CRO:{bg:'#1a0000',border:'#ff0000'},GHA:{bg:'#0a0a0a',border:'#006b3f'},PAN:{bg:'#1a0000',border:'#da121a'},
+  FWC:{bg:'#1a1000',border:'#f5a623'},MUS:{bg:'#1a1000',border:'#f5a623'},CC:{bg:'#001a0d',border:'#ff0000'}
 };
 
 function updateStats(){
@@ -1002,15 +1046,24 @@ function renderSec(){
   document.getElementById('tp-t').textContent=`${have}/${tot}`;
   document.getElementById('tp-p').textContent=p+'%';
   document.getElementById('tp-f').style.width=p+'%';
+  // Dynamic header
+  const flag=FLAGS[sec.code]||'🏆';
+  const hdrColors=TEAM_COLORS[sec.code]||{bg:'var(--s1)',border:'var(--bd)'};
+  const hdr=document.getElementById('hdr-main');
+  if(hdr){hdr.style.background=hdrColors.bg;hdr.style.borderBottomColor=hdrColors.border;}
+  const flagEl=document.getElementById('hdr-flag-big');
+  if(flagEl){flagEl.textContent=flag;}
   const grid=document.getElementById('grid');grid.innerHTML='';
   sec.stickers.forEach(s=>{
     const q=stk[s.c]||0;
     const el=document.createElement('div');
     el.className='stk'+(s.f?' fl':'')+(q===1?' t':q>1?' rp':'');
     el.dataset.code=s.c;
-    el.innerHTML=`<div class="sc">${s.c}</div><div class="sn2">${getName(s)}</div>`
+    const flagHtml=`<div class="stk-flag">${flag}</div>`;
+    el.innerHTML=flagHtml+`<div class="sc">${s.c}</div><div class="sn2">${getName(s)}</div>`
       +(s.f?'<div class="fs">★</div>':'')
-      +(q>1?`<div class="rb">x${q}</div>`:'');
+      +(q>1?`<div class="rb">x${q}</div>`:'')
+      +'<div class="stk-bar"></div>';
     el.addEventListener('click',()=>onStk(s,el));
     el.addEventListener('contextmenu',(e)=>{e.preventDefault();openModal(s);});
     let lt;
@@ -1026,10 +1079,15 @@ function onStk(s,el){
   else{if(!stk[s.c])return;stk[s.c]--;if(!stk[s.c])delete stk[s.c];}
   save();updateStats();updateTprog();if(curTab==='wa')updateMsg();
   const q=stk[s.c]||0;
+  const sec=SECTIONS[cur];
+  const flag=FLAGS[sec.code]||'🏆';
   el.className='stk'+(s.f?' fl':'')+(q===1?' t':q>1?' rp':'');
   const ob=el.querySelector('.rb');if(ob)ob.remove();
   if(q>1){const b=document.createElement('div');b.className='rb';b.textContent='x'+q;el.appendChild(b);}
   const sn=el.querySelector('.sn2');if(sn)sn.textContent=getName(s);
+  // ensure flag and bar exist
+  if(!el.querySelector('.stk-flag')){const f=document.createElement('div');f.className='stk-flag';f.textContent=flag;el.insertBefore(f,el.firstChild);}
+  if(!el.querySelector('.stk-bar')){const b=document.createElement('div');b.className='stk-bar';el.appendChild(b);}
 }
 
 function updateTprog(){
